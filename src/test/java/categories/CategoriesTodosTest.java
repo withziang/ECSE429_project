@@ -1,68 +1,66 @@
 package categories;
 
+import common.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.net.URI;
-import java.net.http.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+@ExtendWith(ServiceRunningCheck.class)
 public class CategoriesTodosTest {
-    private static final HttpClient CLIENT = HttpClient.newHttpClient();
-    private static final String BASE_URL = "http://localhost:4567";
-
-    // <--------------------- Shared helpers --------------------->
-    private HttpResponse<String> send(String method, String path, String json) throws Exception {
-
-        HttpRequest.Builder builder = HttpRequest.newBuilder()
-            .uri(URI.create(BASE_URL + path))
-            .header("Accept", "application/json");
-
-        if (json != null) {
-            builder.header("Content-Type", "application/json")
-                .method(method, HttpRequest.BodyPublishers.ofString(json));
-        } else {
-            builder.method(method, HttpRequest.BodyPublishers.noBody());
-        }
-
-        return CLIENT.send(
-            builder.build(), HttpResponse.BodyHandlers.ofString());
-    }
-
+    // <--------------------- Resource-specific helpers --------------------->
     private String extractId(String body) {
-        Matcher matcher = Pattern.compile("\"id\"\\s*:\\s*\"?([^\",}\\s]+)\"?").matcher(body);
+        Matcher matcher = Pattern
+            .compile("\"id\"\\s*:\\s*\"?([^\",}\\s]+)\"?")
+            .matcher(body);
 
         assertTrue(matcher.find(), "Could not extract ID from: " + body);
         return matcher.group(1);
     }
 
     private boolean containsId(String body, String id) {
-        return Pattern.compile("\"id\"\\s*:\\s*\"?" + Pattern.quote(id) + "\"?").matcher(body).find();
+        return Pattern
+            .compile("\"id\"\\s*:\\s*\"?" + Pattern.quote(id) + "\"?")
+            .matcher(body)
+            .find();
     }
 
-    private String createCategory() throws Exception {
+    private String createCategory() {
         String json = """
-                {
-                    "title": "JUnit Test Category",
-                    "description": "Temporary test category"
-                }
-                """;
+            {
+                "title": "JUnit Test Category",
+                "description": "Temporary test category"
+            }
+            """;
 
-        HttpResponse<String> response = send("POST", "/categories", json);
+        System.out.println("[POST] Creating test category...");
 
-        assertTrue(response.statusCode() == 200 || response.statusCode() == 201,
+        ApiResponse response = ApiClient.post("/categories", json);
+
+        System.out.println("[POST] Status: " + response.status());
+        System.out.println("[POST] Response: " + response.body());
+
+        assertTrue(response.status() == 200 || response.status() == 201,
             "Category creation failed: " + response.body());
 
-        return extractId(response.body());
+        String id = extractId(response.body());
+        System.out.println("[POST] Created category ID: " + id);
+
+        return id;
     }
 
-    private void deleteCategory(String id) throws Exception {
-        send("DELETE", "/categories/" + id, null);
+    private void deleteCategory(String id) {
+        System.out.println("[CLEANUP] Deleting category ID: " + id);
+
+        ApiResponse response = ApiClient.delete("/categories/" + id);
+
+        System.out.println("[CLEANUP] Category DELETE status: " + response.status());
     }
 
-    public String createTodo() throws  Exception {
+    public String createTodo() {
         String json = """
             {
                 "title": "JUnit Test Todo",
@@ -71,95 +69,136 @@ public class CategoriesTodosTest {
             }
             """;
 
-        HttpResponse<String> response = send("POST", "/todos", json);
+        System.out.println("[POST] Creating test todo...");
+
+        ApiResponse response = ApiClient.post("/todos", json);
+
+        System.out.println("[POST] Status: " + response.status());
+        System.out.println("[POST] Response: " + response.body());
 
         assertTrue(
-            response.statusCode() == 200 || response.statusCode() == 201,
+            response.status() == 200 || response.status() == 201,
             "Todo creation failed: " + response.body()
         );
 
-        return extractId(response.body());
+        String id = extractId(response.body());
+        System.out.println("[POST] Created todo ID: " + id);
+
+        return id;
     }
 
-    private void deleteTodo(String id) throws Exception {
-        send("DELETE", "/todos/" + id, null);
+    private void deleteTodo(String id) {
+        System.out.println("[CLEANUP] Deleting todo ID: " + id);
+
+        ApiResponse response = ApiClient.delete("/todos/" + id);
+
+        System.out.println("[CLEANUP] Todo DELETE status: " + response.status());
     }
 
-    private void linkTodoToCategory(String categoryId, String todoId) throws Exception {
+    private void linkTodoToCategory(String categoryId, String todoId) {
         String json = """
             {
                 "id": "%s"
             }
             """.formatted(todoId);
 
-        HttpResponse<String> response = send(
-            "POST",
+        System.out.println("[POST] Linking todo " + todoId
+            + " to category " + categoryId);
+        System.out.println("[POST] Relationship request body: " + json);
+
+        ApiResponse response = ApiClient.post(
             "/categories/" + categoryId + "/todos",
             json
         );
 
+        System.out.println("[POST] Relationship status: " + response.status());
+        System.out.println("[POST] Relationship response: " + response.body());
+
         assertTrue(
-            response.statusCode() == 200 || response.statusCode() == 201,
+            response.status() == 200 || response.status() == 201,
             "Relationship creation failed: " + response.body()
         );
+
+        System.out.println("[PASS] Todo was linked to the category.");
     }
 
 
     // <--------------------- /categories/:id/todos tests --------------------->
     @Test
-    void getCategoryTodosReturnsSuccessWhenEmpty() throws Exception {
+    void getCategoryTodosReturnsSuccessWhenEmpty() {
+        System.out.println("\n========== TEST: GET /categories/:id/todos (empty) ==========");
+
         String categoryId = createCategory();
 
         try {
-            HttpResponse<String> response = send(
-                "GET",
-                "/categories/" + categoryId + "/todos",
-                null
-            );
+            System.out.println("[GET] Retrieving todos for category " + categoryId);
 
-            assertEquals(200, response.statusCode(), response.body());
+            ApiResponse response =
+                ApiClient.get("/categories/" + categoryId + "/todos");
+
+            System.out.println("[GET] Status: " + response.status());
+            System.out.println("[GET] Response: " + response.body());
+
+            assertEquals(200, response.status(), response.body());
+
+            System.out.println("[PASS] GET category todos returned 200.");
         } finally {
             deleteCategory(categoryId);
         }
     }
 
     @Test
-    void headCategoryTodosReturnsHeaders() throws Exception {
+    void headCategoryTodosReturnsHeaders() {
+        System.out.println("\n========== TEST: HEAD /categories/:id/todos ==========");
+
         String categoryId = createCategory();
 
         try {
-            HttpResponse<String> response = send(
-                "HEAD",
-                "/todos",
-                null
-            );
+            System.out.println("[HEAD] Checking todos endpoint for category " + categoryId);
 
-            assertEquals(200, response.statusCode());
+            ApiResponse response =
+                ApiClient.head("/categories/" + categoryId + "/todos");
+
+            System.out.println("[HEAD] Status: " + response.status());
+            System.out.println("[HEAD] Response body length: " + response.body().length());
+
+            assertEquals(200, response.status());
+
+            System.out.println("[PASS] HEAD category todos returned 200.");
         } finally {
             deleteCategory(categoryId);
         }
     }
 
     @Test
-    void postCategoryTodosCreatesRelationship() throws Exception {
+    void postCategoryTodosCreatesRelationship() {
+        System.out.println("\n========== TEST: POST /categories/:id/todos ==========");
+
         String categoryId = createCategory();
         String todoId = createTodo();
 
         try {
             linkTodoToCategory(categoryId, todoId);
 
-            HttpResponse<String> response = send(
-                "GET",
-                "/categories/" + categoryId + "/todos",
-                null
-            );
+            System.out.println("[GET] Verifying todo " + todoId
+                + " appears under category " + categoryId);
 
-            assertEquals(200, response.statusCode(), response.body());
+            ApiResponse response =
+                ApiClient.get("/categories/" + categoryId + "/todos");
+
+            System.out.println("[GET] Status: " + response.status());
+            System.out.println("[GET] Response: " + response.body());
+
+            assertEquals(200, response.status(), response.body());
+
             assertTrue(
                 containsId(response.body(), todoId),
                 "Todo was not found in the category's todos: "
                     + response.body()
             );
+
+            System.out.println("[PASS] Todo " + todoId
+                + " appears in category " + categoryId + "'s todos.");
         } finally {
             deleteCategory(categoryId);
             deleteTodo(todoId);
@@ -169,35 +208,47 @@ public class CategoriesTodosTest {
 
     // <------------------- /categories/:id/todos/:id tests ------------------->
     @Test
-    void deleteCategoryTodoRelationshipRemovesLink() throws Exception {
+    void deleteCategoryTodoRelationshipRemovesLink() {
+        System.out.println("\n========== TEST: DELETE /categories/:id/todos/:id ==========");
+
         String categoryId = createCategory();
         String todoId = createTodo();
 
         try {
             linkTodoToCategory(categoryId, todoId);
 
-            HttpResponse<String> deleteResponse = send(
-                "DELETE",
-                "/categories/" + categoryId + "/todos/" + todoId,
-                null
+            System.out.println("[DELETE] Removing relationship between category "
+                + categoryId + " and todo " + todoId);
+
+            ApiResponse deleteResponse = ApiClient.delete(
+                "/categories/" + categoryId + "/todos/" + todoId
             );
 
+            System.out.println("[DELETE] Status: " + deleteResponse.status());
+            System.out.println("[DELETE] Response: " + deleteResponse.body());
+
             assertTrue(
-                deleteResponse.statusCode() == 200 || deleteResponse.statusCode() == 204,
+                deleteResponse.status() == 200
+                    || deleteResponse.status() == 204,
                 "Relationship deletion failed: " + deleteResponse.body()
             );
 
-            HttpResponse<String> getResponse = send(
-                "GET",
-                "/categories/" + categoryId + "/todos",
-                null
-            );
+            System.out.println("[GET] Verifying the relationship no longer exists...");
 
-            assertEquals(200, getResponse.statusCode(), getResponse.body());
+            ApiResponse getResponse =
+                ApiClient.get("/categories/" + categoryId + "/todos");
+
+            System.out.println("[GET] Status: " + getResponse.status());
+            System.out.println("[GET] Response: " + getResponse.body());
+
+            assertEquals(200, getResponse.status(), getResponse.body());
+
             assertFalse(
                 containsId(getResponse.body(), todoId),
                 "Todo relationship still exists: " + getResponse.body()
             );
+
+            System.out.println("[PASS] Todo relationship was removed successfully.");
         } finally {
             deleteCategory(categoryId);
             deleteTodo(todoId);
