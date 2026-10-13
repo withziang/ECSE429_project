@@ -11,7 +11,7 @@ import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPacka
 public class RandomizedTestRunner {
 
     public static void main(String[] args) {
-        long seed = 123L;
+        long seed = 32L;
 
         System.out.println("Randomized JUnit 5 Test Suite");
         System.out.println("Random-order seed: " + seed);
