@@ -1,0 +1,186 @@
+=== S2-01 projects of seed todo 1
+$ curl http://localhost:4568/todos/1/tasksof
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]}]}
+
+
+=== S2-02 HEAD projects of todo 1
+$ curl -I http://localhost:4568/todos/1/tasksof
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S2-03 categories of seed todo 1
+$ curl http://localhost:4568/todos/1/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"categories":[{"id":"1","title":"Office","description":""}]}
+
+
+=== S2-04 HEAD categories of todo 1
+$ curl -I http://localhost:4568/todos/1/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S2-05 create a todo to link
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"title":"Submit expense report","doneStatus":false,"description":"September receipts"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+Location: todos/3
+
+{"id":"3","title":"Submit expense report","doneStatus":"false","description":"September receipts"}
+
+
+=== S2-06 link todo 3 to project 1
+$ curl -X POST http://localhost:4568/todos/3/tasksof -H Content-Type: application/json -d {"id":"1"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+
+
+=== S2-07 projects of todo 3
+$ curl http://localhost:4568/todos/3/tasksof
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"3"},{"id":"1"},{"id":"2"}]}]}
+
+
+=== S2-08 unlink project 1 from todo 3
+$ curl -X DELETE http://localhost:4568/todos/3/tasksof/1
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S2-09 projects of a missing todo
+$ curl http://localhost:4568/todos/999/tasksof
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]},{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]}]}
+
+
+=== S2-10 link todo 3 to category 2
+$ curl -X POST http://localhost:4568/todos/3/categories -H Content-Type: application/json -d {"id":"2"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+
+
+=== S2-11 categories of todo 3
+$ curl http://localhost:4568/todos/3/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"categories":[{"id":"2","title":"Home","description":""}]}
+
+
+=== S2-12 unlink category 2 from todo 3
+$ curl -X DELETE http://localhost:4568/todos/3/categories/2
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S2-13 unlink category 2 again
+$ curl -X DELETE http://localhost:4568/todos/3/categories/2
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"errorMessages":["Could not find any instances with todos/3/categories/2"]}
+
+
+=== S2-14 link from a missing todo
+$ curl -X POST http://localhost:4568/todos/999/categories -H Content-Type: application/json -d {"id":"1"}
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"errorMessages":["Could not find parent thing for relationship todos/999/categories"]}
+
+
+=== S2-15 categories of a missing todo
+$ curl http://localhost:4568/todos/999/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"categories":[{"id":"1","title":"Office","description":""}]}
+
+
+=== S2-16 HEAD categories of a missing todo
+$ curl -I http://localhost:4568/todos/999/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S2-17 link category 1 with an XML body
+$ curl -X POST http://localhost:4568/todos/3/categories -H Content-Type: application/xml -d <category><id>1</id></category>
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"errorMessages":["Could not find thing matching value for id"]}
+
+
+=== S2-18 link with a title instead of an id
+$ curl -X POST http://localhost:4568/todos/3/categories -H Content-Type: application/json -d {"title":"Errands"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+Location: categories/3
+
+{"id":"3","title":"Errands","description":""}
+
+
+=== S2-19 relink todo 3 to project 1
+$ curl -X POST http://localhost:4568/todos/3/tasksof -H Content-Type: application/json -d {"id":"1"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+
+
+
+=== S2-20 categories of todo 3 before PUT
+$ curl http://localhost:4568/todos/3/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"categories":[{"id":"3","title":"Errands","description":""}]}
+
+
+=== S2-21 PUT todo 3 with title only
+$ curl -X PUT http://localhost:4568/todos/3 -H Content-Type: application/json -d {"title":"Submit expense report"}
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":"3","title":"Submit expense report","doneStatus":"false","description":""}
+
+
+=== S2-22 categories of todo 3 after PUT
+$ curl http://localhost:4568/todos/3/categories
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"categories":[]}
+
+
+=== S2-23 projects of todo 3 after PUT
+$ curl http://localhost:4568/todos/3/tasksof
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"projects":[]}
+
+
+=== S2-24 OPTIONS on a category link
+$ curl -X OPTIONS http://localhost:4568/todos/1/categories/1
+HTTP/1.1 200 OK
+Allow: OPTIONS, DELETE
+Content-Type: text/html;charset=utf-8
+
+
+

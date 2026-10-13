@@ -1,0 +1,223 @@
+=== S1-01 GET all todos
+$ curl http://localhost:4568/todos
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+
+
+=== S1-02 HEAD all todos
+$ curl -I http://localhost:4568/todos
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S1-03 filter by doneStatus
+$ curl http://localhost:4568/todos?doneStatus=false
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+
+
+=== S1-04 filter by exact title
+$ curl http://localhost:4568/todos?title=scan%20paperwork
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]}]}
+
+
+=== S1-05 filter by partial title
+$ curl http://localhost:4568/todos?title=scan
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"todos":[]}
+
+
+=== S1-06 create typical todo
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"title":"Buy groceries","doneStatus":false,"description":"milk, eggs, bread"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+Location: todos/3
+
+{"id":"3","title":"Buy groceries","doneStatus":"false","description":"milk, eggs, bread"}
+
+
+=== S1-07 create without title
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"description":"no title here"}
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{"errorMessages":["title : field is mandatory"]}
+
+
+=== S1-08 create with doneStatus as string
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"title":"Pay rent","doneStatus":"true"}
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{"errorMessages":["Failed Validation: doneStatus should be BOOLEAN"]}
+
+
+=== S1-09 create with id in body
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"id":"50","title":"With id"}
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{"errorMessages":["Invalid Creation: Failed Validation: Not allowed to create with id"]}
+
+
+=== S1-10 create from XML body
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/xml -d <todo><title>Book flight</title><doneStatus>false</doneStatus><description>Montreal to Toronto</description></todo>
+HTTP/1.1 201 Created
+Content-Type: application/json
+Location: todos/6
+
+{"id":"6","title":"Book flight","doneStatus":"false","description":"Montreal to Toronto"}
+
+
+=== S1-11 GET todo 3
+$ curl http://localhost:4568/todos/3
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"todos":[{"id":"3","title":"Buy groceries","doneStatus":"false","description":"milk, eggs, bread"}]}
+
+
+=== S1-12 GET todo 3 as XML
+$ curl http://localhost:4568/todos/3 -H Accept: application/xml
+HTTP/1.1 200 OK
+Content-Type: application/xml
+
+<todos><todo><doneStatus>false</doneStatus><description>milk, eggs, bread</description><id>3</id><title>Buy groceries</title></todo></todos>
+
+
+=== S1-13 HEAD todo 3
+$ curl -I http://localhost:4568/todos/3
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S1-14 GET missing todo
+$ curl http://localhost:4568/todos/999
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"errorMessages":["Could not find an instance with todos/999"]}
+
+
+=== S1-15 amend description with POST
+$ curl -X POST http://localhost:4568/todos/3 -H Content-Type: application/json -d {"description":"milk, eggs, bread, coffee"}
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":"3","title":"Buy groceries","doneStatus":"false","description":"milk, eggs, bread, coffee"}
+
+
+=== S1-16 mark done with POST
+$ curl -X POST http://localhost:4568/todos/3 -H Content-Type: application/json -d {"doneStatus":true}
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":"3","title":"Buy groceries","doneStatus":"true","description":"milk, eggs, bread, coffee"}
+
+
+=== S1-17 PUT with title only
+$ curl -X PUT http://localhost:4568/todos/3 -H Content-Type: application/json -d {"title":"Buy groceries today"}
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"id":"3","title":"Buy groceries today","doneStatus":"false","description":""}
+
+
+=== S1-18 GET todo 3 after PUT
+$ curl http://localhost:4568/todos/3
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+{"todos":[{"id":"3","title":"Buy groceries today","doneStatus":"false","description":""}]}
+
+
+=== S1-19 amend missing todo
+$ curl -X POST http://localhost:4568/todos/999 -H Content-Type: application/json -d {"title":"ghost"}
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"errorMessages":["No such todo entity instance with GUID or ID 999 found"]}
+
+
+=== S1-20 malformed JSON body
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"title":"Broken
+HTTP/1.1 400 Bad Request
+Content-Type: text/html;charset=utf-8
+
+{"errorMessages":["com.google.gson.stream.MalformedJsonException: Unterminated string at line 1 column 17 path $."]}
+
+
+=== S1-21 malformed XML body
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/xml -d <todo><title>Broken</todo>
+HTTP/1.1 400 Bad Request
+Content-Type: text/html;charset=utf-8
+
+{"errorMessages":["Mismatched title and todo at 25 [character 26 line 1]"]}
+
+
+=== S1-22 delete the XML-created todo
+$ curl -X DELETE http://localhost:4568/todos/6
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+=== S1-23 delete it again
+$ curl -X DELETE http://localhost:4568/todos/6
+HTTP/1.1 404 Not Found
+Content-Type: application/json
+
+{"errorMessages":["Could not find any instances with todos/6"]}
+
+
+=== S1-24 OPTIONS on /todos
+$ curl -X OPTIONS http://localhost:4568/todos
+HTTP/1.1 200 OK
+Allow: OPTIONS, GET, HEAD, POST
+Content-Type: text/html;charset=utf-8
+
+
+
+=== S1-25 OPTIONS on /todos/3
+$ curl -X OPTIONS http://localhost:4568/todos/3
+HTTP/1.1 200 OK
+Allow: OPTIONS, GET, HEAD, POST, PUT, DELETE
+Content-Type: text/html;charset=utf-8
+
+
+
+=== S1-26 PATCH on /todos/3
+$ curl -X PATCH http://localhost:4568/todos/3 -H Content-Type: application/json -d {"title":"patched"}
+HTTP/1.1 405 Method Not Allowed
+Content-Type: text/html;charset=utf-8
+
+
+
+=== S1-27 create with empty title
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"title":""}
+HTTP/1.1 400 Bad Request
+Content-Type: application/json
+
+{"errorMessages":["Failed Validation: title : can not be empty"]}
+
+
+=== S1-28 create right after the failure
+$ curl -X POST http://localhost:4568/todos -H Content-Type: application/json -d {"title":"Renew passport"}
+HTTP/1.1 201 Created
+Content-Type: application/json
+Location: todos/8
+
+{"id":"8","title":"Renew passport","doneStatus":"false","description":""}
+
+

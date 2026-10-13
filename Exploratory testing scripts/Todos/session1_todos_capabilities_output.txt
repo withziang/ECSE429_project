@@ -1,0 +1,112 @@
+
+==================== List all todos
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+[HTTP 200]
+
+==================== Filter by doneStatus, by exact title, by partial title (returns nothing)
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+[HTTP 200]
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]}]}
+[HTTP 200]
+{"todos":[]}
+[HTTP 200]
+
+==================== HEAD on the todo list
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+==================== Create a todo from JSON
+{"id":"3","title":"Buy groceries","doneStatus":"false","description":"milk, eggs, bread"}
+[HTTP 201]
+
+==================== Create a todo from XML
+{"id":"4","title":"Book flight","doneStatus":"false","description":"Montreal to Toronto"}
+[HTTP 201]
+
+==================== Rejected creates: no title, doneStatus as a string, id in the body
+{"errorMessages":["title : field is mandatory"]}
+[HTTP 400]
+{"errorMessages":["Failed Validation: doneStatus should be BOOLEAN"]}
+[HTTP 400]
+{"errorMessages":["Invalid Creation: Failed Validation: Not allowed to create with id"]}
+[HTTP 400]
+
+==================== Read one todo as JSON and as XML; HEAD; missing todo
+{"todos":[{"id":"3","title":"Buy groceries","doneStatus":"false","description":"milk, eggs, bread"}]}
+[HTTP 200]
+<todos><todo><doneStatus>false</doneStatus><description>milk, eggs, bread</description><id>3</id><title>Buy groceries</title></todo></todos>
+[HTTP 200]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+{"errorMessages":["Could not find an instance with todos/999"]}
+[HTTP 404]
+
+==================== POST amends only the fields sent
+{"id":"3","title":"Buy groceries","doneStatus":"false","description":"milk, eggs, bread, coffee"}
+[HTTP 200]
+{"id":"3","title":"Buy groceries","doneStatus":"true","description":"milk, eggs, bread, coffee"}
+[HTTP 200]
+
+==================== PUT (documented as amend) resets description and doneStatus when only a title is sent
+{"id":"3","title":"Buy groceries today","doneStatus":"false","description":""}
+[HTTP 200]
+{"todos":[{"id":"3","title":"Buy groceries today","doneStatus":"false","description":""}]}
+[HTTP 200]
+
+==================== Amend a missing todo
+{"errorMessages":["No such todo entity instance with GUID or ID 999 found"]}
+[HTTP 404]
+
+==================== Malformed JSON and XML: 400 with a JSON body but Content-Type text/html
+HTTP/1.1 400 Bad Request
+Content-Type: text/html;charset=utf-8
+
+{"errorMessages":["com.google.gson.stream.MalformedJsonException: Unterminated string at line 1 column 17 path $."]}
+
+HTTP/1.1 400 Bad Request
+Content-Type: text/html;charset=utf-8
+
+{"errorMessages":["Mismatched title and todo at 25 [character 26 line 1]"]}
+
+
+==================== Delete a todo, then delete it again
+
+[HTTP 200]
+{"errorMessages":["Could not find any instances with todos/4"]}
+[HTTP 404]
+
+==================== Undocumented: OPTIONS lists the allowed methods; PATCH is not allowed
+HTTP/1.1 200 OK
+Allow: OPTIONS, GET, HEAD, POST
+Content-Type: text/html;charset=utf-8
+
+
+HTTP/1.1 200 OK
+Allow: OPTIONS, GET, HEAD, POST, PUT, DELETE
+Content-Type: text/html;charset=utf-8
+
+
+
+[HTTP 405]
+
+==================== A failed create still uses up an id (valid, failed, valid: ids skip by one)
+{"id":"7","title":"Water plants","doneStatus":"false","description":""}
+[HTTP 201]
+{"errorMessages":["Failed Validation: title : can not be empty"]}
+[HTTP 400]
+{"id":"9","title":"Renew passport","doneStatus":"false","description":""}
+[HTTP 201]
+
+==================== Cleanup: delete the todos this script created
+
+[HTTP 200]
+
+[HTTP 200]
+
+[HTTP 200]
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+[HTTP 200]

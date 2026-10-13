@@ -1,0 +1,85 @@
+
+==================== Projects and categories of seed todo 1 (GET and HEAD)
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]}]}
+[HTTP 200]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+{"categories":[{"id":"1","title":"Office","description":""}]}
+[HTTP 200]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+==================== Create a todo to link
+{"id":"3","title":"Submit expense report","doneStatus":"false","description":"September receipts"}
+[HTTP 201]
+
+==================== Link the todo to project 1, list its projects, unlink
+
+[HTTP 201]
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"3"},{"id":"2"}]}]}
+[HTTP 200]
+
+[HTTP 200]
+
+==================== Projects of a missing todo: 200 with other todos' projects instead of 404
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]},{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]}]}
+[HTTP 200]
+
+==================== Link the todo to category 2, list its categories, unlink twice
+
+[HTTP 201]
+{"categories":[{"id":"2","title":"Home","description":""}]}
+[HTTP 200]
+
+[HTTP 200]
+{"errorMessages":["Could not find any instances with todos/3/categories/2"]}
+[HTTP 404]
+
+==================== Missing todo: linking gives 404, but GET and HEAD of its categories give 200
+{"errorMessages":["Could not find parent thing for relationship todos/999/categories"]}
+[HTTP 404]
+{"categories":[{"id":"1","title":"Office","description":""}]}
+[HTTP 200]
+HTTP/1.1 200 OK
+Content-Type: application/json
+
+
+
+==================== Linking with an XML body fails although category 1 exists
+{"errorMessages":["Could not find thing matching value for id"]}
+[HTTP 404]
+
+==================== Undocumented: a title instead of an id creates a new category and links it
+{"id":"3","title":"Errands","description":""}
+[HTTP 201]
+
+==================== PUT with only a title removes the todo's category and project links
+
+[HTTP 201]
+{"categories":[{"id":"3","title":"Errands","description":""}]}
+[HTTP 200]
+{"id":"3","title":"Submit expense report","doneStatus":"false","description":""}
+[HTTP 200]
+{"categories":[]}
+[HTTP 200]
+{"projects":[]}
+[HTTP 200]
+
+==================== Undocumented: OPTIONS on a category link allows only DELETE
+HTTP/1.1 200 OK
+Allow: OPTIONS, DELETE
+Content-Type: text/html;charset=utf-8
+
+
+
+==================== Cleanup: delete the todo and the category this script created
+
+[HTTP 200]
+
+[HTTP 200]
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+[HTTP 200]
