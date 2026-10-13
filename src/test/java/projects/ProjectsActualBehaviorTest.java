@@ -80,7 +80,7 @@ class ProjectsActualBehaviorTest extends ProjectsTestSupport {
         ApiResponse response = ApiClient.delete(tasksPath(MISSING_ID) + "/" + todoId);
 
         assertEquals(BAD_REQUEST, response.status());
-        assertEquals("java.lang.NullPointerException", firstErrorMessage(response));
+        assertTrue(describesNullPointer(firstErrorMessage(response)), firstErrorMessage(response));
         assertNothingChangedSince(before);
     }
 
@@ -122,5 +122,9 @@ class ProjectsActualBehaviorTest extends ProjectsTestSupport {
         assertEquals(BAD_REQUEST, response.status());
         assertTrue(firstErrorMessage(response).contains("Not allowed to create with id"));
         assertNothingChangedSince(before);
+    }
+
+    private static boolean describesNullPointer(String errorMessage) {
+        return errorMessage.contains("NullPointerException") || errorMessage.contains("is null");
     }
 }

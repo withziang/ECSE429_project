@@ -49,7 +49,7 @@ A client that asks for the tasks of a deleted or mistyped project receives a pla
 **Summary**: Deleting a task link from a nonexistent project returns a NullPointerException.
 
 **Description**:
-DELETE `/projects/:id/tasks/:id` with a project id that does not exist returns 400 and the body `{"errorMessages":["java.lang.NullPointerException"]}` whenever the todo is a task of some other project. The same happens on `/projects/:id/categories/:id`. When the todo has no project the API returns the correct 404.
+DELETE `/projects/:id/tasks/:id` with a project id that does not exist returns 400 with the text of an unhandled null pointer error whenever the todo is a task of some other project. The text depends on the Java version that runs the application: `java.lang.NullPointerException` on Java 11, and `Cannot invoke "...ThingInstance.getRelationships()" because "parent" is null` on Java 15 and later. The same happens on `/projects/:id/categories/:id`. When the todo has no project the API returns the correct 404.
 
 **Potential impact**:
 The response exposes an unhandled internal exception and reports a client error code for a resource that is simply missing. Clients cannot tell a missing project from a malformed request, and the unhandled path is a sign of missing validation in the delete handler.
@@ -60,7 +60,7 @@ The response exposes an unhandled internal exception and reports a client error 
 
 **Expected result**: 404 with the message "Could not find any instances with projects/0/tasks/1".
 
-**Actual result**: 400 with the message "java.lang.NullPointerException". No data changes.
+**Actual result**: 400 with the null pointer message described above. No data changes.
 
 **Tests**: `deleteTaskOfMissingProjectReturnsNotFound` (expected), `deleteTaskOfMissingProjectReportsANullPointerException` (actual).
 
