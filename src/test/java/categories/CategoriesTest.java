@@ -1,312 +1,159 @@
 package categories;
 
-import common.*;
-
+import com.fasterxml.jackson.databind.JsonNode;
+import common.ApiClient;
+import common.ApiResponse;
+import common.ServiceRunningCheck;
+import common.SystemState;
+import common.TestFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
+/** /categories and /categories/:id. */
 @ExtendWith(ServiceRunningCheck.class)
-public class CategoriesTest {
-    // <--------------------- Shared helpers --------------------->
-    private String extractId(String body) {
-        Matcher matcher = Pattern
-            .compile("\"id\"\\s*:\\s*\"?([^\",}\\s]+)\"?")
-            .matcher(body);
+class CategoriesTest {
 
-        assertTrue(matcher.find(), "Could not extract ID from: " + body);
-        return matcher.group(1);
-    }
-
-    private boolean containsId(String body, String id) {
-        return Pattern
-            .compile("\"id\"\\s*:\\s*\"?" + Pattern.quote(id) + "\"?")
-            .matcher(body)
-            .find();
-    }
-
-    private String createCategory() {
-        String json = """
+    private static final String TEST_CATEGORY = """
             {
                 "title": "JUnit Test Category",
                 "description": "Temporary test category"
             }
             """;
 
-        System.out.println("[POST] Creating a test category...");
+    private final TestFixture fixture = new TestFixture();
 
-        ApiResponse response = ApiClient.post("/categories", json);
-
-        System.out.println("[POST] Status: " + response.status());
-        System.out.println("[POST] Response: " + response.body());
-
-        assertTrue(response.status() == 200 || response.status() == 201,
-            "Category creation failed: " + response.body());
-
-        String id = extractId(response.body());
-        System.out.println("[POST] Created category with ID: " + id);
-
-        return id;
+    @BeforeEach
+    void saveState() {
+        fixture.saveState();
     }
 
-    private void deleteCategory(String id) {
-        System.out.println("[DELETE] Cleaning up category ID: " + id);
-
-        ApiResponse response = ApiClient.delete("/categories/" + id);
-
-        System.out.println("[DELETE] Status: " + response.status());
+    @AfterEach
+    void restoreState() {
+        fixture.restoreState();
     }
-
 
     // <--------------------- /categories tests --------------------->
     @Test
     void getCategoryReturnsSuccess() {
-        System.out.println("\n========== TEST: GET /categories ==========");
-
         ApiResponse response = ApiClient.get("/categories");
 
-        System.out.println("[GET] Status: " + response.status());
-        System.out.println("[GET] Response: " + response.body());
-
         assertEquals(200, response.status());
-        assertNotNull(response.body());
-
-        System.out.println("[PASS] Category collection was retrieved.");
+        assertEquals(Optional.of(ApiClient.JSON), response.header("Content-Type"));
+        assertTrue(response.json().path("categories").isArray(), response.body());
     }
 
     @Test
     void getCategoryReturnsAllExistingCategories() {
-        System.out.println("\n========== TEST: GET /categories preserves existing categories ==========");
+        List<String> existingIds = ApiClient.get("/categories").idsIn("categories");
+        String createdId = fixture.create("categories", TEST_CATEGORY);
 
-        String createdId = null;
+        List<String> idsAfterCreation = ApiClient.get("/categories").idsIn("categories");
 
-        try {
-            ApiResponse initial = ApiClient.get("/categories");
-
-            System.out.println("[GET] Initial status: " + initial.status());
-            System.out.println("[GET] Initial categories: " + initial.body());
-
-            assertEquals(200, initial.status());
-
-            createdId = createCategory();
-
-            ApiResponse result = ApiClient.get("/categories");
-
-            System.out.println("[GET] Status after creation: " + result.status());
-            System.out.println("[GET] Categories after creation: " + result.body());
-
-            assertEquals(200, result.status());
-
-            assertTrue(containsId(result.body(), createdId),
-                "New category should appear in GET /categories");
-
-            System.out.println("[CHECK] New category ID " + createdId + " is present.");
-
-            Matcher oldIds = Pattern
-                .compile("\"id\"\\s*:\\s*\"([^\"]+)\"")
-                .matcher(initial.body());
-
-            while (oldIds.find()) {
-                String oldId = oldIds.group(1);
-
-                System.out.println("[CHECK] Verifying existing category ID: " + oldId);
-
-                assertTrue(containsId(result.body(), oldId),
-                    "Existing category ID " + oldId + " should remain present");
-
-                System.out.println("[CHECK] Existing category ID " + oldId + " remains present.");
-            }
-
-            System.out.println("[PASS] Existing categories were preserved.");
-        } finally {
-            if (createdId != null) {
-                deleteCategory(createdId);
-            }
-        }
+        assertTrue(idsAfterCreation.contains(createdId), "New category should appear in GET /categories");
+        assertTrue(idsAfterCreation.containsAll(existingIds), "Existing categories should remain present");
     }
 
     @Test
     void postCategoryCreatesCategory() {
-        System.out.println("\n========== TEST: POST /categories ==========");
+        SystemState before = SystemState.capture();
 
-        String title = "JUnit POST Test";
-        String description = "Temporary test category";
-        String createdId = null;
-
-        try {
-            String json = """
+        ApiResponse response = ApiClient.post("/categories", """
                 {
                     "title": "JUnit POST Test",
                     "description": "Temporary test category"
                 }
-                """;
+                """);
+        String createdId = response.json().path("id").asText();
+        fixture.recordCreated("categories", createdId);
 
-            System.out.println("[POST] Sending category: " + json);
-
-            ApiResponse response = ApiClient.post("/categories", json);
-
-            System.out.println("[POST] Status: " + response.status());
-            System.out.println("[POST] Response: " + response.body());
-
-            assertTrue(response.status() == 200 || response.status() == 201,
-                "POST should create a category: " + response.body());
-
-            assertTrue(response.body().contains(title),
-                "Response should contain the category title");
-            assertTrue(response.body().contains(description),
-                "Response should contain the category description");
-
-            createdId = extractId(response.body());
-
-            System.out.println("[PASS] Created category ID " + createdId
-                + " with title '" + title + "'.");
-        } finally {
-            if (createdId != null) {
-                deleteCategory(createdId);
-            }
-        }
+        assertEquals(201, response.status());
+        assertEquals(Optional.of("categories/" + createdId), response.header("Location"));
+        JsonNode stored = ApiClient.get("/categories/" + createdId).firstIn("categories");
+        assertEquals("JUnit POST Test", stored.path("title").asText());
+        assertEquals("Temporary test category", stored.path("description").asText());
+        assertEquals(Set.of("categories/" + createdId), before.changedObjects(SystemState.capture()));
     }
 
     @Test
     void headCategoryReturnsHeaders() {
-        System.out.println("\n========== TEST: HEAD /categories ==========");
-
         ApiResponse response = ApiClient.head("/categories");
 
-        System.out.println("[HEAD] Status: " + response.status());
-        System.out.println("[HEAD] Response body length: " + response.body().length());
-
         assertEquals(200, response.status());
-        assertTrue(response.body().isEmpty(),
-            "HEAD response should not contain a body");
-
-        System.out.println("[PASS] HEAD returned 200 with an empty body.");
+        assertTrue(response.body().isEmpty(), "HEAD response should not contain a body");
     }
-
 
     // <--------------------- /categories/:id tests --------------------->
     @Test
     void getCategoryByIdReturnsCorrectCategory() {
-        System.out.println("\n========== TEST: GET /categories/:id ==========");
+        String createdId = fixture.create("categories", TEST_CATEGORY);
 
-        String createdId = createCategory();
+        ApiResponse response = ApiClient.get("/categories/" + createdId);
 
-        try {
-            ApiResponse response = ApiClient.get("/categories/" + createdId);
+        assertEquals(200, response.status());
+        JsonNode category = response.firstIn("categories");
+        assertEquals(createdId, category.path("id").asText());
+        assertEquals("JUnit Test Category", category.path("title").asText());
+        assertEquals("Temporary test category", category.path("description").asText());
+    }
 
-            System.out.println("[GET] Requested category ID: " + createdId);
-            System.out.println("[GET] Status: " + response.status());
-            System.out.println("[GET] Response: " + response.body());
+    @Test
+    void getCategoryByIdAsXmlReturnsCategoryElement() {
+        String createdId = fixture.create("categories", TEST_CATEGORY);
 
-            assertEquals(200, response.status());
-            assertTrue(containsId(response.body(), createdId),
-                "Response should contain the category ID");
-            assertTrue(response.body().contains("JUnit Test Category"),
-                "Response should contain the expected category title");
+        ApiResponse response = ApiClient.send("GET", "/categories/" + createdId, null, ApiClient.JSON, ApiClient.XML);
 
-            System.out.println("[PASS] Retrieved the expected category.");
-        } finally {
-            deleteCategory(createdId);
-        }
+        assertEquals(200, response.status());
+        assertEquals(Optional.of(ApiClient.XML), response.header("Content-Type"));
+        assertEquals("JUnit Test Category",
+                response.xml().getElementsByTagName("title").item(0).getTextContent());
     }
 
     @Test
     void headCategoryByIdReturnsSuccess() {
-        System.out.println("\n========== TEST: HEAD /categories/:id ==========");
+        String createdId = fixture.create("categories", TEST_CATEGORY);
 
-        String createdId = createCategory();
+        ApiResponse response = ApiClient.head("/categories/" + createdId);
 
-        try {
-            ApiResponse response = ApiClient.head("/categories/" + createdId);
-
-            System.out.println("[HEAD] Requested category ID: " + createdId);
-            System.out.println("[HEAD] Status: " + response.status());
-            System.out.println("[HEAD] Response body length: " + response.body().length());
-
-            assertEquals(200, response.status());
-            assertTrue(response.body().isEmpty(),
-                "HEAD response should not contain a body");
-
-            System.out.println("[PASS] HEAD returned 200 with an empty body.");
-        } finally {
-            deleteCategory(createdId);
-        }
+        assertEquals(200, response.status());
+        assertTrue(response.body().isEmpty(), "HEAD response should not contain a body");
     }
 
     @Test
     void putCategoryUpdatesCategory() {
-        System.out.println("\n========== TEST: PUT /categories/:id ==========");
+        String createdId = fixture.create("categories", TEST_CATEGORY);
+        SystemState before = SystemState.capture();
 
-        String createdId = createCategory();
-
-        try {
-            String json = """
+        ApiResponse response = ApiClient.put("/categories/" + createdId, """
                 {
                     "title": "Updated by PUT",
                     "description": "Updated description"
                 }
-                """;
+                """);
 
-            System.out.println("[PUT] Updating category ID: " + createdId);
-            System.out.println("[PUT] Request body: " + json);
-
-            ApiResponse response = ApiClient.put("/categories/" + createdId, json);
-
-            System.out.println("[PUT] Status: " + response.status());
-            System.out.println("[PUT] Response: " + response.body());
-
-            assertTrue(
-                response.status() == 200 || response.status() == 204,
-                "PUT update should succeed: " + response.body()
-            );
-
-            ApiResponse check = ApiClient.get("/categories/" + createdId);
-
-            System.out.println("[GET] Verifying updated category...");
-            System.out.println("[GET] Status: " + check.status());
-            System.out.println("[GET] Updated category: " + check.body());
-
-            assertEquals(200, check.status());
-            assertTrue(check.body().contains("Updated by PUT"));
-            assertTrue(check.body().contains("Updated description"));
-
-            System.out.println("[PASS] Category was updated and changes persisted.");
-        } finally {
-            deleteCategory(createdId);
-        }
+        assertEquals(200, response.status());
+        JsonNode stored = ApiClient.get("/categories/" + createdId).firstIn("categories");
+        assertEquals("Updated by PUT", stored.path("title").asText());
+        assertEquals("Updated description", stored.path("description").asText());
+        assertEquals(Set.of("categories/" + createdId), before.changedObjects(SystemState.capture()));
     }
 
     @Test
     void deleteCategoryByIdReturnsSuccess() {
-        System.out.println("\n========== TEST: DELETE /categories/:id ==========");
+        String createdId = fixture.create("categories", TEST_CATEGORY);
+        SystemState before = SystemState.capture();
 
-        String createdId = createCategory();
+        ApiResponse response = ApiClient.delete("/categories/" + createdId);
 
-        System.out.println("[DELETE] Deleting category ID: " + createdId);
-
-        ApiResponse deleteResponse = ApiClient.delete("/categories/" + createdId);
-
-        System.out.println("[DELETE] Status: " + deleteResponse.status());
-        System.out.println("[DELETE] Response: " + deleteResponse.body());
-
-        assertTrue(
-            deleteResponse.status() == 200 || deleteResponse.status() == 204,
-            "DELETE should succeed: " + deleteResponse.body()
-        );
-
-        System.out.println("[GET] Verifying category no longer exists...");
-
-        ApiResponse getResponse = ApiClient.get("/categories/" + createdId);
-
-        System.out.println("[GET] Status after deletion: " + getResponse.status());
-
-        assertEquals(404, getResponse.status(),
-            "GET after DELETE should return 404");
-
-        System.out.println("[PASS] Category was deleted and GET returned 404.");
+        assertEquals(200, response.status());
+        assertEquals(404, ApiClient.get("/categories/" + createdId).status(), "GET after DELETE should return 404");
+        assertEquals(Set.of("categories/" + createdId), before.changedObjects(SystemState.capture()));
     }
 }

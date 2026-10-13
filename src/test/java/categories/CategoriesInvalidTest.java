@@ -3,171 +3,104 @@ package categories;
 import common.ApiClient;
 import common.ApiResponse;
 import common.ServiceRunningCheck;
+import common.SystemState;
+import common.TestFixture;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
+import java.util.Set;
+
 import static org.junit.jupiter.api.Assertions.*;
 
+/** Invalid requests to /categories and /categories/:id. */
 @ExtendWith(ServiceRunningCheck.class)
-public class CategoriesInvalidTest {
+class CategoriesInvalidTest {
+
+    private final TestFixture fixture = new TestFixture();
+
+    @BeforeEach
+    void saveState() {
+        fixture.saveState();
+    }
+
+    @AfterEach
+    void restoreState() {
+        fixture.restoreState();
+    }
+
     @Test
     void malformedJsonCategoryIsRejected() {
-        System.out.println("\n========== TEST: POST /categories - Malformed JSON ==========");
-        System.out.println("[POST] Sending malformed JSON...");
-
-        ApiResponse response = ApiClient.post(
-            "/categories",
-            "{\"title\":"
-        );
-
-        System.out.println("[POST] Status: " + response.status());
-        System.out.println("[POST] Response: " + response.body());
-
-        assertFalse(response.status() >= 200 && response.status() < 300,
-            "Malformed JSON should not be accepted");
-
-        System.out.println("[PASS] Malformed JSON was rejected.");
+        assertCreationRejected(ApiClient.JSON, "{\"title\":");
     }
 
     @Test
     void malformedXmlCategoryIsRejected() {
-        System.out.println("\n========== TEST: POST /categories - Malformed XML ==========");
-        System.out.println("[POST] Sending malformed XML...");
-
-        ApiResponse response = ApiClient.send(
-            "POST",
-            "/categories",
-            "<category><title>Broken</category>",
-            ApiClient.XML,
-            ApiClient.JSON
-        );
-
-        System.out.println("[POST] Status: " + response.status());
-        System.out.println("[POST] Response: " + response.body());
-
-        assertFalse(response.status() >= 200 && response.status() < 300,
-            "Malformed XML should not be accepted");
-
-        System.out.println("[PASS] Malformed XML was rejected.");
-    }
-
-    @Test
-    void nonNumericCategoryIdIsRejected() {
-        System.out.println("\n========== TEST: GET /categories/abc ==========");
-        System.out.println("[GET] Requesting category with non-numeric ID...");
-
-        ApiResponse response = ApiClient.get("/categories/abc");
-
-        System.out.println("[GET] Status: " + response.status());
-        System.out.println("[GET] Response: " + response.body());
-
-        assertFalse(response.status() >= 200 && response.status() < 300,
-            "A non-numeric category ID should not return success");
-
-        System.out.println("[PASS] Non-numeric category ID did not return success.");
-    }
-
-    @Test
-    void nonexistentCategoryReturnsNotFound() {
-        System.out.println("\n========== TEST: GET /categories/99999 ==========");
-        System.out.println("[GET] Requesting a nonexistent category...");
-
-        ApiResponse response = ApiClient.get("/categories/99999");
-
-        System.out.println("[GET] Status: " + response.status());
-        System.out.println("[GET] Response: " + response.body());
-
-        assertEquals(404, response.status(),
-            "A nonexistent category should return 404");
-
-        System.out.println("[PASS] Nonexistent category returned 404.");
-    }
-
-    @Test
-    void deletingCategoryTwiceDoesNotSucceedTwice() {
-        System.out.println("\n========== TEST: DELETE /categories/:id twice ==========");
-
-        String json = """
-            {
-                "title": "Double Delete Test",
-                "description": "Temporary category"
-            }
-            """;
-
-        ApiResponse created = ApiClient.post("/categories", json);
-
-        System.out.println("[POST] Creation status: " + created.status());
-        System.out.println("[POST] Response: " + created.body());
-
-        assertTrue(created.status() >= 200 && created.status() < 300,
-            "Category creation failed: " + created.body());
-
-        String id = created.json().path("id").asText();
-        assertFalse(id.isBlank(), "Created category has no ID");
-
-        ApiResponse firstDelete = ApiClient.delete("/categories/" + id);
-
-        System.out.println("[DELETE] First deletion status: " + firstDelete.status());
-        System.out.println("[DELETE] First response: " + firstDelete.body());
-
-        assertTrue(firstDelete.status() >= 200 && firstDelete.status() < 300,
-            "First deletion failed");
-
-        ApiResponse secondDelete = ApiClient.delete("/categories/" + id);
-
-        System.out.println("[DELETE] Second deletion status: " + secondDelete.status());
-        System.out.println("[DELETE] Second response: " + secondDelete.body());
-
-        assertFalse(secondDelete.status() >= 200 && secondDelete.status() < 300,
-            "Deleting the same category twice unexpectedly succeeded");
-
-        System.out.println("[PASS] Second deletion did not return success.");
+        assertCreationRejected(ApiClient.XML, "<category><title>Broken</category>");
     }
 
     @Test
     void missingCategoryTitleIsRejected() {
-        System.out.println("\n========== TEST: POST /categories - Missing title ==========");
+        ApiResponse response = assertCreationRejected(ApiClient.JSON, """
+                {
+                    "description": "Category without a title"
+                }
+                """);
 
-        String json = """
-            {
-                "description": "Category without a title"
-            }
-            """;
-
-        System.out.println("[POST] Creating category without a title...");
-
-        ApiResponse response = ApiClient.post("/categories", json);
-
-        System.out.println("[POST] Status: " + response.status());
-        System.out.println("[POST] Response: " + response.body());
-
-        assertFalse(response.status() >= 200 && response.status() < 300,
-            "A category without a mandatory title should be rejected");
-
-        System.out.println("[PASS] Missing title was rejected.");
+        assertTrue(response.body().contains("title : field is mandatory"), response.body());
     }
 
     @Test
     void emptyCategoryTitleIsRejected() {
-        System.out.println("\n========== TEST: POST /categories - Empty title ==========");
+        ApiResponse response = assertCreationRejected(ApiClient.JSON, """
+                {
+                    "title": "",
+                    "description": "Category with an empty title"
+                }
+                """);
 
-        String json = """
-            {
-                "title": "",
-                "description": "Category with an empty title"
-            }
-            """;
+        assertTrue(response.body().contains("title : can not be empty"), response.body());
+    }
 
-        System.out.println("[POST] Creating category with an empty title...");
+    @Test
+    void nonNumericCategoryIdIsRejected() {
+        ApiResponse response = ApiClient.get("/categories/abc");
 
-        ApiResponse response = ApiClient.post("/categories", json);
+        assertEquals(404, response.status(), "A non-numeric category ID should not be found");
+    }
 
-        System.out.println("[POST] Status: " + response.status());
-        System.out.println("[POST] Response: " + response.body());
+    @Test
+    void nonexistentCategoryReturnsNotFound() {
+        ApiResponse response = ApiClient.get("/categories/99999");
 
-        assertFalse(response.status() >= 200 && response.status() < 300,
-            "A category with an empty title should be rejected");
+        assertEquals(404, response.status(), "A nonexistent category should return 404");
+        assertTrue(response.body().contains("Could not find an instance with categories/99999"), response.body());
+    }
 
-        System.out.println("[PASS] Empty title was rejected.");
+    @Test
+    void deletingCategoryTwiceDoesNotSucceedTwice() {
+        String id = fixture.create("categories", """
+                {
+                    "title": "Double Delete Test",
+                    "description": "Temporary category"
+                }
+                """);
+
+        ApiResponse firstDelete = ApiClient.delete("/categories/" + id);
+        ApiResponse secondDelete = ApiClient.delete("/categories/" + id);
+
+        assertEquals(200, firstDelete.status());
+        assertEquals(404, secondDelete.status(), "Deleting the same category twice should return 404");
+    }
+
+    private ApiResponse assertCreationRejected(String contentType, String body) {
+        SystemState before = SystemState.capture();
+
+        ApiResponse response = ApiClient.send("POST", "/categories", body, contentType, ApiClient.JSON);
+
+        assertEquals(400, response.status(), response.body());
+        assertEquals(Set.of(), before.changedObjects(SystemState.capture()), "A rejected request should change nothing");
+        return response;
     }
 }
