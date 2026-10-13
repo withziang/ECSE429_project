@@ -3,6 +3,8 @@
 Testing the Thingifier REST API todo list manager (v1.5.5).
 
 ## Layout
+- `Bug report` — Bugs discovered during testing.
+- `Exploratory testing session notes` — Session notes taken by the team.
 - `Exploratory testing screenshots/` — Screenshots captured during exploratory testing sessions.
 - `src/` — Application under test, including the runnable JAR and `run.sh`.
 - `test/` — Test suite.
