@@ -30,9 +30,9 @@ Testing the Thingifier REST API todo list manager (v1.5.5).
 ## Running the application
 
 Start the REST API:
-
+- Open a terminal in the folder containing the JAR file and run:
 ```
-./src/run.sh
+java -jar runTodoManagerRestAPI-1.5.5.jar
 ```
 
 Serves on http://localhost:4567

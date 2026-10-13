@@ -45,9 +45,5 @@ public class RandomizedTestRunner {
         launcher.execute(request);
 
         listener.getSummary().printTo(new java.io.PrintWriter(System.out));
-
-        if (listener.getSummary().getTotalFailureCount() > 0) {
-            System.out.println("\nSome tests failed.");
-        }
     }
 }
