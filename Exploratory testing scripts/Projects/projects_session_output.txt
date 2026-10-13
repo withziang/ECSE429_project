@@ -1,0 +1,324 @@
+
+==== /projects ====
+
+$ curl http://localhost:4567/projects
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]}]}
+[status 200] [application/json]
+
+$ curl -H Accept: application/xml http://localhost:4567/projects
+<projects><project><active>false</active><description/><id>1</id><completed>false</completed><title>Office Work</title><tasks><id>2</id></tasks><tasks><id>1</id></tasks></project></projects>
+[status 200] [application/xml]
+
+$ curl -I http://localhost:4567/projects
+HTTP/1.1 200 OK
+Date: Tue, 13 Oct 2026 22:21:36 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 200] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Kitchen renovation","description":"Replace cabinets","completed":false,"active":true} http://localhost:4567/projects
+{"id":"2","title":"Kitchen renovation","completed":"false","active":"true","description":"Replace cabinets"}
+[status 201] [application/json]
+
+$ curl -X POST -H Content-Type: application/xml -H Accept: application/xml -d <project><title>Garden shed</title><active>true</active></project> http://localhost:4567/projects
+<project><active>true</active><description/><id>3</id><completed>false</completed><title>Garden shed</title></project>
+[status 201] [application/xml]
+
+$ curl -X POST -H Content-Type: application/json -d {} http://localhost:4567/projects
+{"id":"4","title":"","completed":"false","active":"false","description":""}
+[status 201] [application/json]
+
+$ curl http://localhost:4567/projects?active=true
+{"projects":[{"id":"3","title":"Garden shed","completed":"false","active":"true","description":""},{"id":"2","title":"Kitchen renovation","completed":"false","active":"true","description":"Replace cabinets"}]}
+[status 200] [application/json]
+
+$ curl http://localhost:4567/projects?title=Garden%20shed&completed=false
+{"projects":[{"id":"3","title":"Garden shed","completed":"false","active":"true","description":""}]}
+[status 200] [application/json]
+
+==== /projects/:id ====
+
+$ curl http://localhost:4567/projects/5
+{"projects":[{"id":"5","title":"Bathroom renovation","completed":"false","active":"true","description":"Retile the shower"}]}
+[status 200] [application/json]
+
+$ curl -H Accept: application/xml http://localhost:4567/projects/5
+<projects><project><active>true</active><description>Retile the shower</description><id>5</id><completed>false</completed><title>Bathroom renovation</title></project></projects>
+[status 200] [application/xml]
+
+$ curl -I http://localhost:4567/projects/5
+HTTP/1.1 200 OK
+Date: Tue, 13 Oct 2026 22:21:36 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 200] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"description":"Retile the shower and floor"} http://localhost:4567/projects/5
+{"id":"5","title":"Bathroom renovation","completed":"false","active":"true","description":"Retile the shower and floor"}
+[status 200] [application/json]
+
+$ curl -X PUT -H Content-Type: application/json -d {"title":"Bathroom renovation","description":"Retile everything","completed":true,"active":false} http://localhost:4567/projects/5
+{"id":"5","title":"Bathroom renovation","completed":"true","active":"false","description":"Retile everything"}
+[status 200] [application/json]
+
+==== /projects/:id/tasks ====
+
+$ curl http://localhost:4567/projects/5/tasks
+{"todos":[]}
+[status 200] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"id":"3"} http://localhost:4567/projects/5/tasks
+
+[status 201] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"id":"3"} http://localhost:4567/projects/5/tasks
+
+[status 201] [application/json]
+
+$ curl http://localhost:4567/projects/5/tasks
+{"todos":[{"id":"3","title":"Order tiles","doneStatus":"false","description":"","tasksof":[{"id":"5"}]}]}
+[status 200] [application/json]
+
+$ curl -H Accept: application/xml http://localhost:4567/projects/5/tasks
+<todos><todo><doneStatus>false</doneStatus><description/><tasksof><id>5</id></tasksof><id>3</id><title>Order tiles</title></todo></todos>
+[status 200] [application/xml]
+
+$ curl -I http://localhost:4567/projects/5/tasks
+HTTP/1.1 200 OK
+Date: Tue, 13 Oct 2026 22:21:36 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 200] [application/json]
+
+$ curl http://localhost:4567/todos/3
+{"todos":[{"id":"3","title":"Order tiles","doneStatus":"false","description":"","tasksof":[{"id":"5"}]}]}
+[status 200] [application/json]
+
+==== /projects/:id/tasks/:id ====
+
+$ curl -X DELETE http://localhost:4567/projects/5/tasks/3
+
+[status 200] [application/json]
+
+$ curl -X DELETE http://localhost:4567/projects/5/tasks/3
+{"errorMessages":["Could not find any instances with projects/5/tasks/3"]}
+[status 404] [application/json]
+
+$ curl http://localhost:4567/todos/3
+{"todos":[{"id":"3","title":"Order tiles","doneStatus":"false","description":""}]}
+[status 200] [application/json]
+
+==== /projects/:id/categories ====
+
+$ curl http://localhost:4567/projects/5/categories
+{"categories":[]}
+[status 200] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"id":"3"} http://localhost:4567/projects/5/categories
+
+[status 201] [application/json]
+
+$ curl http://localhost:4567/projects/5/categories
+{"categories":[{"id":"3","title":"Renovation","description":""}]}
+[status 200] [application/json]
+
+$ curl -H Accept: application/xml http://localhost:4567/projects/5/categories
+<categories><category><description/><id>3</id><title>Renovation</title></category></categories>
+[status 200] [application/xml]
+
+$ curl -I http://localhost:4567/projects/5/categories
+HTTP/1.1 200 OK
+Date: Tue, 13 Oct 2026 22:21:37 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 200] [application/json]
+
+$ curl http://localhost:4567/categories/3/projects
+{"projects":[]}
+[status 200] [application/json]
+
+==== /projects/:id/categories/:id ====
+
+$ curl -X DELETE http://localhost:4567/projects/5/categories/3
+
+[status 200] [application/json]
+
+$ curl -X DELETE http://localhost:4567/projects/5/categories/3
+{"errorMessages":["Could not find any instances with projects/5/categories/3"]}
+[status 404] [application/json]
+
+==== Undocumented capabilities ====
+
+$ curl -i -X OPTIONS http://localhost:4567/projects
+HTTP/1.1 200 OK
+Date: Tue, 13 Oct 2026 22:21:37 GMT
+Allow: OPTIONS, GET, HEAD, POST
+Content-Type: text/html;charset=utf-8
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 200] [text/html;charset=utf-8]
+
+$ curl -i -X OPTIONS http://localhost:4567/projects/5
+HTTP/1.1 200 OK
+Date: Tue, 13 Oct 2026 22:21:37 GMT
+Allow: OPTIONS, GET, HEAD, POST, PUT, DELETE
+Content-Type: text/html;charset=utf-8
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 200] [text/html;charset=utf-8]
+
+$ curl -X PUT -H Content-Type: application/json -d {} http://localhost:4567/projects
+
+[status 405] [text/html;charset=utf-8]
+
+$ curl -X DELETE http://localhost:4567/projects
+
+[status 405] [text/html;charset=utf-8]
+
+$ curl -X PATCH -H Content-Type: application/json -d {} http://localhost:4567/projects/5
+
+[status 405] [text/html;charset=utf-8]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Buy grout"} http://localhost:4567/projects/5/tasks
+{"id":"4","title":"Buy grout","doneStatus":"false","description":"","tasksof":[{"id":"5"}]}
+[status 201] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Plumbing"} http://localhost:4567/projects/5/categories
+{"id":"4","title":"Plumbing","description":""}
+[status 201] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Hallway","tasks":[{"id":"3"}]} http://localhost:4567/projects
+{"id":"6","title":"Hallway","completed":"false","active":"false","description":"","tasks":[{"id":"3"}]}
+[status 201] [application/json]
+
+==== Invalid operations ====
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Kitchen renovation" http://localhost:4567/projects
+{"errorMessages":["java.io.EOFException: End of input at line 1 column 30 path $."]}
+[status 400] [text/html;charset=utf-8]
+
+$ curl -X POST -H Content-Type: application/xml -d <project><title>Kitchen renovation</project> http://localhost:4567/projects
+{"errorMessages":["Mismatched title and project at 43 [character 44 line 1]"]}
+[status 400] [text/html;charset=utf-8]
+
+$ curl -X POST -H Content-Type: application/json -d {"id":"500","title":"Kitchen renovation"} http://localhost:4567/projects
+{"errorMessages":["Invalid Creation: Failed Validation: Not allowed to create with id"]}
+[status 400] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Kitchen renovation","deadline":"Friday"} http://localhost:4567/projects
+{"errorMessages":["Could not find field: deadline"]}
+[status 400] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"active":"sometimes"} http://localhost:4567/projects/5
+{"errorMessages":["Failed Validation: active should be BOOLEAN"]}
+[status 400] [application/json]
+
+$ curl -X POST -d title=Kitchen http://localhost:4567/projects
+{"errorMessages":["Unsupported Content Type - application/x-www-form-urlencoded"]}
+[status 415] [application/json]
+
+$ curl -H Accept: text/plain http://localhost:4567/projects
+{"errorMessages":["Unrecognised Accept Type"]}
+[status 406] [application/json]
+
+$ curl http://localhost:4567/projects/0
+{"errorMessages":["Could not find an instance with projects/0"]}
+[status 404] [application/json]
+
+$ curl -I http://localhost:4567/projects/0
+HTTP/1.1 404 Not Found
+Date: Tue, 13 Oct 2026 22:21:37 GMT
+Content-Type: application/json
+Transfer-Encoding: chunked
+Server: Jetty(9.4.z-SNAPSHOT)
+
+
+[status 404] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Nothing"} http://localhost:4567/projects/0
+{"errorMessages":["No such project entity instance with GUID or ID 0 found"]}
+[status 404] [application/json]
+
+$ curl -X PUT -H Content-Type: application/json -d {"title":"Nothing"} http://localhost:4567/projects/0
+{"errorMessages":["Invalid GUID for 0 entity project"]}
+[status 404] [application/json]
+
+$ curl -X DELETE http://localhost:4567/projects/0
+{"errorMessages":["Could not find any instances with projects/0"]}
+[status 404] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"id":"0"} http://localhost:4567/projects/5/tasks
+{"errorMessages":["Could not find thing matching value for id"]}
+[status 404] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"id":"3"} http://localhost:4567/projects/0/tasks
+{"errorMessages":["Could not find parent thing for relationship projects/0/tasks"]}
+[status 404] [application/json]
+
+==== Behavior that differs from the documentation ====
+
+$ curl http://localhost:4567/projects/8
+{"projects":[{"id":"8","title":"Linked project","completed":"false","active":"true","description":"Has a task","tasks":[{"id":"3"}]}]}
+[status 200] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"Renamed by POST"} http://localhost:4567/projects/8
+{"id":"8","title":"Renamed by POST","completed":"false","active":"true","description":"Has a task","tasks":[{"id":"3"}]}
+[status 200] [application/json]
+
+$ curl -X PUT -H Content-Type: application/json -d {"title":"Renamed by PUT"} http://localhost:4567/projects/8
+{"id":"8","title":"Renamed by PUT","completed":"false","active":"false","description":""}
+[status 200] [application/json]
+
+$ curl http://localhost:4567/projects/0/tasks
+{"todos":[{"id":"4","title":"Buy grout","doneStatus":"false","description":"","tasksof":[{"id":"5"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]},{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}],"categories":[{"id":"1"}]},{"id":"3","title":"Order tiles","doneStatus":"false","description":"","tasksof":[{"id":"6"}]}]}
+[status 200] [application/json]
+
+$ curl http://localhost:4567/projects/0/categories
+{"categories":[{"id":"4","title":"Plumbing","description":""}]}
+[status 200] [application/json]
+
+$ curl -X DELETE http://localhost:4567/projects/0/tasks/1
+{"errorMessages":["java.lang.NullPointerException"]}
+[status 400] [text/html;charset=utf-8]
+
+$ curl -X POST -H Content-Type: application/xml -d <todo><id>3</id></todo> http://localhost:4567/projects/5/tasks
+{"errorMessages":["Could not find thing matching value for id"]}
+[status 404] [application/json]
+
+$ curl -X POST -H Content-Type: application/json -d {"title":"a qui officia deseru","completed":"false","active":"true","description":"t in voluptate velit"} http://localhost:4567/projects
+{"errorMessages":["Failed Validation: completed should be BOOLEAN, active should be BOOLEAN"]}
+[status 400] [application/json]
+
+$ curl -X POST -H Content-Type: application/xml -d <project><active>true</active><description>t in voluptate velit</description><id>null</id><completed>false</completed><title>a qui officia deseru</title></project> http://localhost:4567/projects
+{"errorMessages":["Invalid Creation: Failed Validation: Not allowed to create with id"]}
+[status 400] [application/json]
+
+==== /projects/:id DELETE ====
+
+$ curl -X DELETE http://localhost:4567/projects/5
+
+[status 200] [application/json]
+
+$ curl -X DELETE http://localhost:4567/projects/5
+{"errorMessages":["Could not find any instances with projects/5"]}
+[status 404] [application/json]
+
+$ curl http://localhost:4567/projects
+{"projects":[{"id":"3","title":"Garden shed","completed":"false","active":"true","description":""},{"id":"2","title":"Kitchen renovation","completed":"false","active":"true","description":"Replace cabinets"},{"id":"4","title":"","completed":"false","active":"false","description":""},{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]},{"id":"8","title":"Renamed by PUT","completed":"false","active":"false","description":""},{"id":"6","title":"Hallway","completed":"false","active":"false","description":"","tasks":[{"id":"3"}]}]}
+[status 200] [application/json]
