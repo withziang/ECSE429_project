@@ -6,10 +6,12 @@ Testing the Thingifier REST API todo list manager (v1.5.5).
 - `Bug reports/` — Bugs discovered during testing.
 - `Exploratory testing session notes/` — Session notes taken by the team.
 - `Exploratory testing screenshots/` — Screenshots captured during exploratory testing sessions.
+- `Exploratory testing scripts/` — Scripts run during exploratory testing sessions, with their recorded output.
 - `src/` — Application under test (`runTodoManagerRestAPI-1.5.5.jar` and `run.sh`).
 - `src/test/java/` — Test suite.
-    - `common/` — Shared API client, response helpers, and the check that fails tests when the service is not running.
+    - `common/` — Shared API client, response helpers, the fixture that saves and restores system state, and the check that fails tests when the service is not running.
     - `todos/` — Todo endpoint tests.
+    - `projects/` — Project endpoint tests.
     - `categories/` — Category endpoint tests.
     - `runner/` — `RandomizedTestRunner`, which runs the whole suite in random order.
 - `pom.xml` — Maven build file; declares every dependency.
