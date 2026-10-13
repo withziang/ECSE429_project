@@ -2,16 +2,16 @@
 ==== /projects ====
 
 $ curl http://localhost:4567/projects
-{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]}]}
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]}]}
 [status 200] [application/json]
 
 $ curl -H Accept: application/xml http://localhost:4567/projects
-<projects><project><active>false</active><description/><id>1</id><completed>false</completed><title>Office Work</title><tasks><id>2</id></tasks><tasks><id>1</id></tasks></project></projects>
+<projects><project><active>false</active><description/><id>1</id><completed>false</completed><title>Office Work</title><tasks><id>1</id></tasks><tasks><id>2</id></tasks></project></projects>
 [status 200] [application/xml]
 
 $ curl -I http://localhost:4567/projects
 HTTP/1.1 200 OK
-Date: Tue, 13 Oct 2026 22:21:36 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Content-Type: application/json
 Transfer-Encoding: chunked
 Server: Jetty(9.4.z-SNAPSHOT)
@@ -51,7 +51,7 @@ $ curl -H Accept: application/xml http://localhost:4567/projects/5
 
 $ curl -I http://localhost:4567/projects/5
 HTTP/1.1 200 OK
-Date: Tue, 13 Oct 2026 22:21:36 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Content-Type: application/json
 Transfer-Encoding: chunked
 Server: Jetty(9.4.z-SNAPSHOT)
@@ -91,7 +91,7 @@ $ curl -H Accept: application/xml http://localhost:4567/projects/5/tasks
 
 $ curl -I http://localhost:4567/projects/5/tasks
 HTTP/1.1 200 OK
-Date: Tue, 13 Oct 2026 22:21:36 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Content-Type: application/json
 Transfer-Encoding: chunked
 Server: Jetty(9.4.z-SNAPSHOT)
@@ -137,7 +137,7 @@ $ curl -H Accept: application/xml http://localhost:4567/projects/5/categories
 
 $ curl -I http://localhost:4567/projects/5/categories
 HTTP/1.1 200 OK
-Date: Tue, 13 Oct 2026 22:21:37 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Content-Type: application/json
 Transfer-Encoding: chunked
 Server: Jetty(9.4.z-SNAPSHOT)
@@ -163,7 +163,7 @@ $ curl -X DELETE http://localhost:4567/projects/5/categories/3
 
 $ curl -i -X OPTIONS http://localhost:4567/projects
 HTTP/1.1 200 OK
-Date: Tue, 13 Oct 2026 22:21:37 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Allow: OPTIONS, GET, HEAD, POST
 Content-Type: text/html;charset=utf-8
 Transfer-Encoding: chunked
@@ -174,7 +174,7 @@ Server: Jetty(9.4.z-SNAPSHOT)
 
 $ curl -i -X OPTIONS http://localhost:4567/projects/5
 HTTP/1.1 200 OK
-Date: Tue, 13 Oct 2026 22:21:37 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Allow: OPTIONS, GET, HEAD, POST, PUT, DELETE
 Content-Type: text/html;charset=utf-8
 Transfer-Encoding: chunked
@@ -243,7 +243,7 @@ $ curl http://localhost:4567/projects/0
 
 $ curl -I http://localhost:4567/projects/0
 HTTP/1.1 404 Not Found
-Date: Tue, 13 Oct 2026 22:21:37 GMT
+Date: Tue, 13 Oct 2026 23:35:35 GMT
 Content-Type: application/json
 Transfer-Encoding: chunked
 Server: Jetty(9.4.z-SNAPSHOT)
@@ -286,7 +286,7 @@ $ curl -X PUT -H Content-Type: application/json -d {"title":"Renamed by PUT"} ht
 [status 200] [application/json]
 
 $ curl http://localhost:4567/projects/0/tasks
-{"todos":[{"id":"4","title":"Buy grout","doneStatus":"false","description":"","tasksof":[{"id":"5"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]},{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}],"categories":[{"id":"1"}]},{"id":"3","title":"Order tiles","doneStatus":"false","description":"","tasksof":[{"id":"6"}]}]}
+{"todos":[{"id":"4","title":"Buy grout","doneStatus":"false","description":"","tasksof":[{"id":"5"}]},{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","categories":[{"id":"1"}],"tasksof":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]},{"id":"3","title":"Order tiles","doneStatus":"false","description":"","tasksof":[{"id":"6"}]}]}
 [status 200] [application/json]
 
 $ curl http://localhost:4567/projects/0/categories
@@ -294,7 +294,7 @@ $ curl http://localhost:4567/projects/0/categories
 [status 200] [application/json]
 
 $ curl -X DELETE http://localhost:4567/projects/0/tasks/1
-{"errorMessages":["java.lang.NullPointerException"]}
+{"errorMessages":["Cannot invoke \"uk.co.compendiumdev.thingifier.core.domain.instances.ThingInstance.getRelationships()\" because \"parent\" is null"]}
 [status 400] [text/html;charset=utf-8]
 
 $ curl -X POST -H Content-Type: application/xml -d <todo><id>3</id></todo> http://localhost:4567/projects/5/tasks
@@ -320,5 +320,5 @@ $ curl -X DELETE http://localhost:4567/projects/5
 [status 404] [application/json]
 
 $ curl http://localhost:4567/projects
-{"projects":[{"id":"3","title":"Garden shed","completed":"false","active":"true","description":""},{"id":"2","title":"Kitchen renovation","completed":"false","active":"true","description":"Replace cabinets"},{"id":"4","title":"","completed":"false","active":"false","description":""},{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]},{"id":"8","title":"Renamed by PUT","completed":"false","active":"false","description":""},{"id":"6","title":"Hallway","completed":"false","active":"false","description":"","tasks":[{"id":"3"}]}]}
+{"projects":[{"id":"3","title":"Garden shed","completed":"false","active":"true","description":""},{"id":"2","title":"Kitchen renovation","completed":"false","active":"true","description":"Replace cabinets"},{"id":"4","title":"","completed":"false","active":"false","description":""},{"id":"8","title":"Renamed by PUT","completed":"false","active":"false","description":""},{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"1"},{"id":"2"}]},{"id":"6","title":"Hallway","completed":"false","active":"false","description":"","tasks":[{"id":"3"}]}]}
 [status 200] [application/json]
