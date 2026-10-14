@@ -1,0 +1,548 @@
+﻿**********************
+Windows PowerShell transcript start
+Start time: 20261014015258
+Username: [REDACTED]
+RunAs User: [REDACTED]
+Configuration Name: 
+Machine: [REDACTED]
+Host Application:[REDACTED]
+Process ID: 21512
+PSVersion: 5.1.26100.9549
+PSEdition: Desktop
+PSCompatibleVersions: 1.0, 2.0, 3.0, 4.0, 5.0, 5.1.26100.9549
+BuildVersion: 10.0.26100.9549
+CLRVersion: 4.0.30319.42000
+WSManStackVersion: 3.0
+PSRemotingProtocolVersion: 2.3
+SerializationVersion: 1.1.0.1
+**********************
+Transcript started, output file is C:\Users\there\Downloads\ECSE429_project\Exploratory testing scripts\Categories\categories_session_output.txt
+
+=== GET /categories ===
+Status: 200
+{"categories":[{"id":"2","title":"Home","description":""},{"id":"4","title":"UpdatedByPUT","description":"","todos":[{"id":"1"}]},{"id":"1","title":"Office","description":""}]}
+
+
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"categories":[{"id":"2","title":"Home","description":""},{"id":"4","title":"UpdatedByPUT","description":"","todos":[{"id":"1"}]},{"id":"1","title":"Office","d
+                    escription":""}]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"categories":[{"id":"2","title":"Home","description"...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 176
+
+
+=== HEAD /categories ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== POST /categories ===
+Status: 201
+{"id":"5","title":"SessionTestCategory","description":"Original description"}
+Using category ID: 5
+
+=== GET /categories/5 ===
+Status: 200
+{"categories":[{"id":"5","title":"SessionTestCategory","description":"Original description"}]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"categories":[{"id":"5","title":"SessionTestCategory","description":"Original description"}]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"categories":[{"id":"5","title":"SessionTestCategory...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 94
+
+
+=== HEAD /categories/5 ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== POST /categories/5 ===
+Status: 200
+{"id":"5","title":"UpdatedByPOST","description":"Original description"}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"id":"5","title":"UpdatedByPOST","description":"Original description"}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"id":"5","title":"UpdatedByPOST","description":"Orig...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 71
+
+
+=== GET /categories/5 ===
+Status: 200
+{"categories":[{"id":"5","title":"UpdatedByPOST","description":"Original description"}]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"categories":[{"id":"5","title":"UpdatedByPOST","description":"Original description"}]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"categories":[{"id":"5","title":"UpdatedByPOST","des...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 88
+
+
+=== PUT /categories/5 ===
+Status: 200
+{"id":"5","title":"UpdatedByPUT","description":""}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"id":"5","title":"UpdatedByPUT","description":""}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"id":"5","title":"UpdatedByPUT","description":""}
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 50
+
+
+=== GET /categories/5 ===
+Status: 200
+{"categories":[{"id":"5","title":"UpdatedByPUT","description":""}]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"categories":[{"id":"5","title":"UpdatedByPUT","description":""}]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"categories":[{"id":"5","title":"UpdatedByPUT","desc...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 67
+
+
+=== GET /projects ===
+Status: 200
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]}]}
+
+=== GET /categories/5/projects ===
+Status: 200
+{"projects":[]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"projects":[]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"projects":[]}
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 15
+
+
+=== HEAD /categories/5/projects ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+Using project ID: 1
+
+=== GET /categories/5/projects ===
+Status: 200
+{"projects":[]}
+
+=== POST /categories/5/projects ===
+Status: 201
+StatusCode        : 201
+StatusDescription : Created
+Content           :
+RawContent        : HTTP/1.1 201 Created
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:58 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:58 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== POST /categories/5/projects ===
+Status: 201
+StatusCode        : 201
+StatusDescription : Created
+Content           :
+RawContent        : HTTP/1.1 201 Created
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== GET /categories/5/projects ===
+Status: 200
+{"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]}]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"projects":[{"id":"1","title":"Office Work","completed":"false","active":"false","description":"","tasks":[{"id":"2"},{"id":"1"}]}]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"projects":[{"id":"1","title":"Office Work","complet...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 133
+
+
+=== DELETE /categories/5/projects/1 ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== GET /categories/5/projects ===
+Status: 200
+{"projects":[]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"projects":[]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"projects":[]}
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 15
+
+
+=== GET /todos ===
+Status: 200
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}],"categories":[{"id":"1"}]},{"id":"2","title":"file paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}]}]}
+
+=== GET /categories/5/todos ===
+Status: 200
+{"todos":[]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"todos":[]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"todos":[]}
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 12
+
+
+=== HEAD /categories/5/todos ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+Using todo ID: 1
+
+=== GET /categories/5/todos ===
+Status: 200
+{"todos":[]}
+
+=== POST /categories/5/todos ===
+Status: 201
+StatusCode        : 201
+StatusDescription : Created
+Content           :
+RawContent        : HTTP/1.1 201 Created
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== POST /categories/5/todos ===
+Status: 201
+StatusCode        : 201
+StatusDescription : Created
+Content           :
+RawContent        : HTTP/1.1 201 Created
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== GET /categories/5/todos ===
+Status: 200
+{"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}],"categories":[{"id":"1"}]}]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"todos":[{"id":"1","title":"scan paperwork","doneStatus":"false","description":"","tasksof":[{"id":"1"}],"categories":[{"id":"1"}]}]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"todos":[{"id":"1","title":"scan paperwork","doneSta...
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 134
+
+
+=== DELETE /categories/5/todos/1 ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== GET /categories/5/todos ===
+Status: 200
+{"todos":[]}
+StatusCode        : 200
+StatusDescription : OK
+Content           : {"todos":[]}
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+                    {"todos":[]}
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 12
+
+
+=== DELETE /categories/5 ===
+Status: 200
+StatusCode        : 200
+StatusDescription : OK
+Content           :
+RawContent        : HTTP/1.1 200 OK
+                    Transfer-Encoding: chunked
+                    Content-Type: application/json
+                    Date: Wed, 14 Oct 2026 05:52:59 GMT
+                    Server: Jetty(9.4.z-SNAPSHOT)
+
+
+Forms             :
+Headers           : {[Transfer-Encoding, chunked], [Content-Type, application/json], [Date, Wed, 14 Oct 2026 05:52:59 GMT], [Server, Jetty(9.4.z-SNAPSHOT)]}
+Images            : {}
+InputFields       : {}
+Links             : {}
+ParsedHtml        :
+RawContentLength  : 0
+
+
+=== GET /categories/5 ===
+PS>TerminatingError(Invoke-WebRequest): "The remote server returned an error: (404) Not Found."
+Status: 404
+**********************
+Windows PowerShell transcript end
+End time: 20261014015259
+**********************
