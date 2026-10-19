@@ -3,226 +3,189 @@ $OutputFile = Join-Path $PSScriptRoot "categories_session_output.txt"
 
 Start-Transcript -Path $OutputFile -Force
 
-function Test-Endpoint {
-    param(
-        [string]$Method,
-        [string]$Path,
-        [string]$Body = ""
-    )
-
-    Write-Host "`n=== $Method $Path ==="
-
-    try {
-        $Params = @{
-            Uri     = "$Base$Path"
-            Method  = $Method
-            TimeoutSec = 10
-        }
-
-        if ($Body -ne "") {
-            $Params.Body = $Body
-            $Params.ContentType = "application/json"
-        }
-
-        $Response = Invoke-WebRequest @Params -UseBasicParsing
-        Write-Host "Status: $([int]$Response.StatusCode)"
-        if ($Response.Content) {
-            Write-Host $Response.Content
-        }
-        return $Response
-    }
-    catch {
-        if ($_.Exception.Response) {
-            Write-Host "Status: $([int]$_.Exception.Response.StatusCode)"
-        } else {
-            Write-Host "Error: $($_.Exception.Message)"
-        }
-        return $null
-    }
-}
-
-function Get-ResourceId {
-    param(
-        $Response,
-        [string]$Collection,
-        [string]$Title = ""
-    )
-
-    if (-not $Response -or -not $Response.Content) {
-        return $null
-    }
-
-    try {
-        $Data = $Response.Content | ConvertFrom-Json
-
-        # Find the requested resource in a collection response
-        if ($Collection -and $Data.$Collection) {
-            $Items = @($Data.$Collection)
-
-            if ($Title) {
-                $Item = $Items | Where-Object { $_.title -eq $Title } |
-                    Select-Object -First 1
-            } else {
-                $Item = $Items | Select-Object -First 1
-            }
-
-            if ($Item -and $Item.id) {
-                return [string]$Item.id
-            }
-        }
-
-        # Handle a single-resource response
-        if ($Data.id) {
-            return [string]$Data.id
-        }
-
-        # Handle a wrapped single-resource response
-        foreach ($Name in @("category", "project", "todo")) {
-            if ($Data.$Name -and $Data.$Name.id) {
-                return [string]$Data.$Name.id
-            }
-        }
-    }
-    catch {
-        Write-Host "Could not parse response JSON."
-    }
-
-    return $null
-}
-
 try {
-    # 1. Categories collection
-    Test-Endpoint GET "/categories"
-    Test-Endpoint HEAD "/categories"
+    # 1. Retrieve all categories.
+    Invoke-WebRequest "$Base/categories" -Method GET -UseBasicParsing
 
-    # 2. Create a temporary category
+    # 2. Check the headers returned by the categories collection.
+    Invoke-WebRequest "$Base/categories" -Method HEAD -UseBasicParsing
+
+    # 3. Create a temporary category.
     $Title = "SessionTestCategory"
-    $CategoryBody = @{
-        title       = $Title
-        description = "Original description"
-    } | ConvertTo-Json -Compress
+    $Created = Invoke-WebRequest "$Base/categories" -Method POST `
+        -ContentType "application/json" `
+        -Body '{"title":"SessionTestCategory","description":"Original description"}' `
+        -UseBasicParsing
+    $Created
 
-    $Created = Test-Endpoint POST "/categories" $CategoryBody
-    $CategoryId = Get-ResourceId $Created "categories" $Title
+    # 4. Extract the category ID from the creation response.
+    $CreatedData = $Created.Content | ConvertFrom-Json
+    $CategoryId = [string]$CreatedData.id
 
-    # Find it in the collection if POST did not return its ID
-    if (-not $CategoryId) {
-        $List = Test-Endpoint GET "/categories"
-        $CategoryId = Get-ResourceId $List "categories" $Title
+    if (-not $CategoryId -and $CreatedData.category) {
+        $CategoryId = [string]$CreatedData.category.id
     }
 
+    # 5. Retrieve categories to find the new category if necessary.
     if (-not $CategoryId) {
-        Write-Host "Category ID not found; dependent tests cannot run."
-    } else {
-        Write-Host "Using category ID: $CategoryId"
+        $CategoryList = Invoke-WebRequest "$Base/categories" -Method GET -UseBasicParsing
+        $CategoryList
+        $CategoryListData = $CategoryList.Content | ConvertFrom-Json
+        $CategoryId = [string](($CategoryListData.categories |
+            Where-Object { $_.title -eq $Title } |
+            Select-Object -First 1).id)
+    }
 
-        # 3. Individual category
-        Test-Endpoint GET "/categories/$CategoryId"
-        Test-Endpoint HEAD "/categories/$CategoryId"
+    Write-Host "Category ID: $CategoryId"
 
-        # 4. Compare POST and PUT updates
-        Test-Endpoint POST "/categories/$CategoryId" `
-            '{"title":"UpdatedByPOST"}'
+    # 6. Retrieve the individual category.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method GET -UseBasicParsing
 
-        Test-Endpoint GET "/categories/$CategoryId"
+    # 7. Check the headers of the individual category.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method HEAD -UseBasicParsing
 
-        Test-Endpoint PUT "/categories/$CategoryId" `
-            '{"title":"UpdatedByPUT"}'
+    # 8. Update the category using POST.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method POST `
+        -ContentType "application/json" `
+        -Body '{"title":"UpdatedByPOST"}' -UseBasicParsing
 
-        Test-Endpoint GET "/categories/$CategoryId"
+    # 9. Retrieve the category to inspect the POST update.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method GET -UseBasicParsing
 
-        # 5. Category-project relationships
-        $Projects = Test-Endpoint GET "/projects"
-        $ProjectId = Get-ResourceId $Projects "projects"
+    # 10. Update the category using PUT.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method PUT `
+        -ContentType "application/json" `
+        -Body '{"title":"UpdatedByPUT"}' -UseBasicParsing
 
-        Test-Endpoint GET "/categories/$CategoryId/projects"
-        Test-Endpoint HEAD "/categories/$CategoryId/projects"
+    # 11. Retrieve the category to inspect the PUT update.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method GET -UseBasicParsing
 
-        if ($ProjectId) {
-            Write-Host "Using project ID: $ProjectId"
+    # 12. Retrieve all projects.
+    $Projects = Invoke-WebRequest "$Base/projects" -Method GET -UseBasicParsing
+    $Projects
 
-            # Check whether the relationship already exists
-            $Existing = Test-Endpoint GET "/categories/$CategoryId/projects"
-            $ExistingIds = @()
+    # 13. Extract the first project's ID.
+    $ProjectData = $Projects.Content | ConvertFrom-Json
+    $ProjectId = [string](($ProjectData.projects | Select-Object -First 1).id)
 
-            if ($Existing -and $Existing.Content) {
-                try {
-                    $ExistingData = $Existing.Content | ConvertFrom-Json
-                    $ExistingIds = @($ExistingData.projects |
-                        ForEach-Object { [string]$_.id })
-                } catch {}
-            }
+    if (-not $ProjectId -and $ProjectData.project) {
+        $ProjectId = [string]$ProjectData.project.id
+    }
 
-            $WasLinked = $ExistingIds -contains $ProjectId
+    if (-not $ProjectId -and $ProjectData.id) {
+        $ProjectId = [string]$ProjectData.id
+    }
 
-            # Use a string ID in the relationship body
-            $RelationshipBody = '{"id":"' + $ProjectId + '"}'
+    # 14. Retrieve projects associated with the category.
+    Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method GET -UseBasicParsing
 
-            Test-Endpoint POST "/categories/$CategoryId/projects" `
-                $RelationshipBody
+    # 15. Check the headers of the category-project collection.
+    Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method HEAD -UseBasicParsing
 
-            # Repeat to check duplicate relationship behavior
-            Test-Endpoint POST "/categories/$CategoryId/projects" `
-                $RelationshipBody
+    if ($ProjectId) {
+        # 16. Retrieve existing category-project relationships.
+        $ExistingProjects = Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method GET -UseBasicParsing
+        $ExistingProjects
+        $ExistingProjectData = $ExistingProjects.Content | ConvertFrom-Json
 
-            Test-Endpoint GET "/categories/$CategoryId/projects"
+        # 17. Record whether the project was already linked.
+        $WasProjectLinked = @($ExistingProjectData.projects |
+            Where-Object { [string]$_.id -eq $ProjectId }).Count -gt 0
 
-            # Delete only if this script created the relationship
-            if (-not $WasLinked) {
-                Test-Endpoint DELETE `
-                    "/categories/$CategoryId/projects/$ProjectId"
-                Test-Endpoint GET "/categories/$CategoryId/projects"
-            }
-        } else {
-            Write-Host "No project found; relationship tests skipped."
+        # 18. Associate the project with the category.
+        Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method POST `
+            -ContentType "application/json" `
+            -Body ('{"id":"' + $ProjectId + '"}') -UseBasicParsing
+
+        # 19. Repeat the association to test duplicate handling.
+        Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method POST `
+            -ContentType "application/json" `
+            -Body ('{"id":"' + $ProjectId + '"}') -UseBasicParsing
+
+        # 20. Retrieve projects to verify the relationship.
+        Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method GET -UseBasicParsing
+
+        if (-not $WasProjectLinked) {
+            # 21. Delete the project relationship created by this test.
+            Invoke-WebRequest "$Base/categories/$CategoryId/projects/$ProjectId" -Method DELETE -UseBasicParsing
+
+            # 22. Verify that the project relationship was removed.
+            Invoke-WebRequest "$Base/categories/$CategoryId/projects" -Method GET -UseBasicParsing
         }
+    }
+    else {
+        Write-Host "No project ID found; project relationship tests skipped."
+    }
 
-        # 6. Category-todo relationships
-        $Todos = Test-Endpoint GET "/todos"
-        $TodoId = Get-ResourceId $Todos "todos"
+    # 23. Retrieve all todos.
+    $Todos = Invoke-WebRequest "$Base/todos" -Method GET -UseBasicParsing
+    $Todos
 
-        Test-Endpoint GET "/categories/$CategoryId/todos"
-        Test-Endpoint HEAD "/categories/$CategoryId/todos"
+    # 24. Extract the first todo's ID.
+    $TodoData = $Todos.Content | ConvertFrom-Json
+    $TodoId = [string](($TodoData.todos | Select-Object -First 1).id)
 
-        if ($TodoId) {
-            Write-Host "Using todo ID: $TodoId"
+    if (-not $TodoId -and $TodoData.todo) {
+        $TodoId = [string]$TodoData.todo.id
+    }
 
-            $Existing = Test-Endpoint GET "/categories/$CategoryId/todos"
-            $ExistingIds = @()
+    if (-not $TodoId -and $TodoData.id) {
+        $TodoId = [string]$TodoData.id
+    }
 
-            if ($Existing -and $Existing.Content) {
-                try {
-                    $ExistingData = $Existing.Content | ConvertFrom-Json
-                    $ExistingIds = @($ExistingData.todos |
-                        ForEach-Object { [string]$_.id })
-                } catch {}
-            }
+    # 25. Retrieve todos associated with the category.
+    Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method GET -UseBasicParsing
 
-            $WasLinked = $ExistingIds -contains $TodoId
-            $RelationshipBody = '{"id":"' + $TodoId + '"}'
+    # 26. Check the headers of the category-todo collection.
+    Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method HEAD -UseBasicParsing
 
-            Test-Endpoint POST "/categories/$CategoryId/todos" `
-                $RelationshipBody
+    if ($TodoId) {
+        # 27. Retrieve existing category-todo relationships.
+        $ExistingTodos = Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method GET -UseBasicParsing
+        $ExistingTodos
+        $ExistingTodoData = $ExistingTodos.Content | ConvertFrom-Json
 
-            Test-Endpoint POST "/categories/$CategoryId/todos" `
-                $RelationshipBody
+        # 28. Record whether the todo was already linked.
+        $WasTodoLinked = @($ExistingTodoData.todos |
+            Where-Object { [string]$_.id -eq $TodoId }).Count -gt 0
 
-            Test-Endpoint GET "/categories/$CategoryId/todos"
+        # 29. Associate the todo with the category.
+        Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method POST `
+            -ContentType "application/json" `
+            -Body ('{"id":"' + $TodoId + '"}') -UseBasicParsing
 
-            if (-not $WasLinked) {
-                Test-Endpoint DELETE `
-                    "/categories/$CategoryId/todos/$TodoId"
-                Test-Endpoint GET "/categories/$CategoryId/todos"
-            }
-        } else {
-            Write-Host "No todo found; relationship tests skipped."
+        # 30. Repeat the association to test duplicate handling.
+        Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method POST `
+            -ContentType "application/json" `
+            -Body ('{"id":"' + $TodoId + '"}') -UseBasicParsing
+
+        # 31. Retrieve todos to verify the relationship.
+        Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method GET -UseBasicParsing
+
+        if (-not $WasTodoLinked) {
+            # 32. Delete the todo relationship created by this test.
+            Invoke-WebRequest "$Base/categories/$CategoryId/todos/$TodoId" -Method DELETE -UseBasicParsing
+
+            # 33. Verify that the todo relationship was removed.
+            Invoke-WebRequest "$Base/categories/$CategoryId/todos" -Method GET -UseBasicParsing
         }
+    }
+    else {
+        Write-Host "No todo ID found; todo relationship tests skipped."
+    }
 
-        # 7. Delete the temporary category last
-        Test-Endpoint DELETE "/categories/$CategoryId"
-        Test-Endpoint GET "/categories/$CategoryId"
+    # 34. Delete the temporary category.
+    Invoke-WebRequest "$Base/categories/$CategoryId" -Method DELETE -UseBasicParsing
+
+    # 35. Verify that the deleted category can no longer be retrieved.
+    try {
+        Invoke-WebRequest "$Base/categories/$CategoryId" -Method GET -UseBasicParsing
+    }
+    catch {
+        Write-Host "Expected error after category deletion: $($_.Exception.Message)"
     }
 }
 finally {
+    # Finish saving the transcript.
     Stop-Transcript
 }
