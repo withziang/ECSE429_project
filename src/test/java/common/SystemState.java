@@ -43,6 +43,13 @@ public final class SystemState {
         return paths;
     }
 
+    /** Paths of the objects that exist in a later snapshot but not in this one. */
+    public Set<String> addedObjects(SystemState later) {
+        Set<String> paths = new TreeSet<>(later.objectsByPath.keySet());
+        paths.removeAll(objectsByPath.keySet());
+        return paths;
+    }
+
     // Relationship lists come back in no fixed order, so arrays are compared as sorted lists.
     private static String canonical(JsonNode node) {
         if (node.isObject()) {

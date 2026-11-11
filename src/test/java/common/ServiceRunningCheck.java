@@ -10,6 +10,10 @@ public class ServiceRunningCheck implements BeforeEachCallback {
 
     @Override
     public void beforeEach(ExtensionContext context) {
+        assertRunning();
+    }
+
+    public static void assertRunning() {
         try {
             ApiClient.get("/todos");
         } catch (UncheckedIOException e) {
