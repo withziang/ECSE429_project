@@ -35,9 +35,12 @@ public class CommonSteps {
 
     @Given("a {resource} titled {string} exists")
     public void aResourceTitledExists(String resource, String title) {
-        ApiResponse response = ApiClient.post("/" + resource, JsonBodies.object("title", title));
-        assertEquals(HttpStatus.CREATED, response.status(), "could not create " + resource + ": " + response.body());
-        context.remember(resource, title, response.json().path("id").asText());
+        create(resource, title, JsonBodies.object("title", title));
+    }
+
+    @Given("a {resource} titled {string} with description {string} exists")
+    public void aResourceTitledWithDescriptionExists(String resource, String title, String description) {
+        create(resource, title, JsonBodies.object("title", title, "description", description));
     }
 
     @Then("the response status is {int}")
@@ -57,5 +60,11 @@ public class CommonSteps {
         ApiClient.get("/" + resource).json().path(resource).forEach(object ->
                 assertFalse(object.path("description").asText().equals(description),
                         resource + " " + object.path("id").asText() + " has the description \"" + description + "\""));
+    }
+
+    private void create(String resource, String title, String body) {
+        ApiResponse response = ApiClient.post("/" + resource, body);
+        assertEquals(HttpStatus.CREATED, response.status(), "could not create " + resource + ": " + response.body());
+        context.remember(resource, title, response.json().path("id").asText());
     }
 }
