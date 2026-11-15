@@ -28,6 +28,12 @@ public class CommonSteps {
         return name.equals("category") ? "categories" : name + "s";
     }
 
+    /** Lets steps say "JSON" or "XML"; the value is the matching media type. */
+    @ParameterType("JSON|XML")
+    public String format(String name) {
+        return name.equals("XML") ? ApiClient.XML : ApiClient.JSON;
+    }
+
     @Given("the Todo Manager is running")
     public void theTodoManagerIsRunning() {
         ServiceRunningCheck.assertRunning();
