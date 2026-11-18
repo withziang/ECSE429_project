@@ -1,22 +1,20 @@
 package stepdefinitions.categories;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import com.fasterxml.jackson.databind.JsonNode;
 import common.ApiClient;
 import common.ApiResponse;
 import common.HttpStatus;
 import common.JsonBodies;
-
-import stepdefinitions.common.ScenarioContext;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
 import io.cucumber.java.en.Given;
-import io.cucumber.java.en.When;
 import io.cucumber.java.en.Then;
-
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
-
-import static org.junit.jupiter.api.Assertions.*;
+import io.cucumber.java.en.When;
+import java.util.Collections;
+import java.util.List;
+import stepdefinitions.common.ScenarioContext;
 
 public class CategorySteps {
 
@@ -26,310 +24,169 @@ public class CategorySteps {
         this.context = context;
     }
 
+    // Create a category
 
-    // <------------------------- Create a category -------------------------->
     @When("I create a category with title {string}")
-    public void createCategoryWithTitle(String title) {
-        ApiResponse response = ApiClient.post(
-            "/categories",
-            JsonBodies.object("title", title)
-        );
-
-        context.setLastResponse(response);
-        rememberCreatedCategory(response, title);
+    public void iCreateACategoryWithTitle(String title) {
+        createCategory(title, JsonBodies.object("title", title));
     }
 
     @When("I create a category with title {string} and description {string}")
-    public void createCategoryWithTitleAndDescription(
-        String title, String description) {
-
-        ApiResponse response = ApiClient.post(
-            "/categories",
-            JsonBodies.object(
-                "title", title,
-                "description", description
-            )
-        );
-
-        context.setLastResponse(response);
-        rememberCreatedCategory(response, title);
-    }
-
-    @Then("the category {string} exists")
-    public void categoryExists(String title) {
-        assertTrue(categoryWithTitleExists(title));
-    }
-
-    @Then("no category exists with title {string}")
-    public void categoryDoesNotExist(String title) {
-        assertFalse(categoryWithTitleExists(title));
+    public void iCreateACategoryWithTitleAndDescription(String title, String description) {
+        createCategory(title, JsonBodies.object("title", title, "description", description));
     }
 
     @When("I create a category with invalid title {string}")
-    public void createCategoryWithInvalidTitle(String invalidTitle) {
+    public void iCreateACategoryWithInvalidTitle(String invalidTitle) {
+        context.setLastResponse(ApiClient.post("/categories", JsonBodies.object("title", titleFor(invalidTitle))));
+    }
 
-        String title = switch (invalidTitle) {
-            case "EMPTY" -> "";
-            case "WHITESPACE" -> "   ";
-            default -> throw new IllegalArgumentException(
-                "Unknown invalid title: " + invalidTitle
-            );
-        };
+    @Then("the category {string} exists")
+    public void theCategoryExists(String title) {
+        assertTrue(categoryWithTitleExists(title), "no category is titled \"" + title + "\"");
+    }
 
-        ApiResponse response = ApiClient.post(
-            "/categories",
-            JsonBodies.object("title", title)
-        );
-
-        context.setLastResponse(response);
+    @Then("no category exists with title {string}")
+    public void noCategoryExistsWithTitle(String title) {
+        assertFalse(categoryWithTitleExists(title), "a category is titled \"" + title + "\"");
     }
 
     @Then("no category exists with invalid title {string}")
     public void noCategoryExistsWithInvalidTitle(String invalidTitle) {
-
-        String title = switch (invalidTitle) {
-            case "EMPTY" -> "";
-            case "WHITESPACE" -> "   ";
-            default -> throw new IllegalArgumentException(
-                "Unknown invalid title: " + invalidTitle
-            );
-        };
-
-        assertFalse(categoryWithTitleExists(title));
+        noCategoryExistsWithTitle(titleFor(invalidTitle));
     }
 
+    // Rename a category
 
-    // <------------------------- Rename a category -------------------------------->
     @When("I rename category {string} to {string} using {string}")
-    public void renameCategory(
-        String oldTitle, String newTitle, String method) {
-
+    public void iRenameCategory(String oldTitle, String newTitle, String method) {
         String id = context.idOf("categories", oldTitle);
-
-        ApiResponse response = updateCategory(method, id, newTitle);
-
-        context.setLastResponse(response);
-
-        if (response.status() == HttpStatus.OK) {
+        iRenameCategoryWithId(id, newTitle, method);
+        if (context.lastResponse().status() == HttpStatus.OK) {
             context.remember("categories", newTitle, id);
         }
     }
 
     @When("I rename category with id {string} to {string} using {string}")
-    public void renameMissingCategory(
-        String id, String title, String method) {
-
-        context.setLastResponse(updateCategory(method, id, title));
+    public void iRenameCategoryWithId(String id, String title, String method) {
+        String path = "/categories/" + id;
+        String body = JsonBodies.object("title", title);
+        context.setLastResponse(switch (method) {
+            case "POST" -> ApiClient.post(path, body);
+            case "PUT" -> ApiClient.put(path, body);
+            default -> throw new IllegalArgumentException("Unsupported method: " + method);
+        });
     }
 
+    // Assign a category to a project
 
-    // <-------------------- Assign category to a project ----------------------->
     @When("I assign project {string} to category {string}")
-    public void assignProject(String project, String category) {
-
-        String categoryId = context.idOf("categories", category);
-        String projectId = context.idOf("projects", project);
-
-        ApiResponse response = ApiClient.post(
-            "/categories/" + categoryId + "/projects",
-            JsonBodies.idReference(projectId)
-        );
-
-        context.setLastResponse(response);
+    public void iAssignProjectToCategory(String project, String category) {
+        iAssignProjectWithIdToCategory(context.idOf("projects", project), category);
     }
 
     @When("I assign project {string} to category {string} twice")
-    public void assignProjectTwice(String project, String category) {
-
-        String categoryId = context.idOf("categories", category);
-        String projectId = context.idOf("projects", project);
-
-        ApiClient.post(
-            "/categories/" + categoryId + "/projects",
-            JsonBodies.idReference(projectId)
-        );
-
-        ApiResponse response = ApiClient.post(
-            "/categories/" + categoryId + "/projects",
-            JsonBodies.idReference(projectId)
-        );
-
-        context.setLastResponse(response);
+    public void iAssignProjectToCategoryTwice(String project, String category) {
+        iAssignProjectToCategory(project, category);
+        iAssignProjectToCategory(project, category);
     }
 
     @When("I assign project with id {string} to category {string}")
-    public void assignMissingProject(String projectId, String category) {
-
-        String categoryId = context.idOf("categories", category);
-
-        ApiResponse response = ApiClient.post(
-            "/categories/" + categoryId + "/projects",
-            JsonBodies.idReference(projectId)
-        );
-
-        context.setLastResponse(response);
+    public void iAssignProjectWithIdToCategory(String projectId, String category) {
+        String path = "/categories/" + context.idOf("categories", category) + "/projects";
+        context.setLastResponse(ApiClient.post(path, JsonBodies.idReference(projectId)));
     }
 
     @Then("category {string} contains project {string} exactly once")
-    public void categoryContainsProject(String category, String project) {
-
-        String categoryId = context.idOf("categories", category);
-        String projectId = context.idOf("projects", project);
-
-        ApiResponse response = ApiClient.get(
-            "/categories/" + categoryId + "/projects"
-        );
-
-        assertEquals(HttpStatus.OK, response.status());
-
-        long count = response.json().findValues("id").stream()
-            .filter(node -> node.asText().equals(projectId))
-            .count();
-
-        assertEquals(1, count);
+    public void categoryContainsProjectExactlyOnce(String category, String project) {
+        ApiResponse response = ApiClient.get("/categories/" + context.idOf("categories", category) + "/projects");
+        assertEquals(HttpStatus.OK, response.status(), "could not read the projects of \"" + category + "\"");
+        assertEquals(1, Collections.frequency(response.idsIn("projects"), context.idOf("projects", project)));
     }
 
     @Then("the response status indicates success")
-    public void responseStatusIndicatesSuccess() {
-
+    public void theResponseStatusIndicatesSuccess() {
         int status = context.lastResponse().status();
-
-        assertTrue(
-            status == 200 || status == 201 || status == 204,
-            "Expected successful response but received: " + status
-        );
+        assertTrue(status / 100 == 2, "expected a successful response but received " + status);
     }
 
+    // List a category's todos
 
-    // <-------------------- List category todos -------------------->
     @Given("todo {string} is assigned to category {string}")
-    public void assignTodoToCategory(String todo, String category) {
-
-        String categoryId = context.idOf("categories", category);
-        String todoId = context.idOf("todos", todo);
-
-        ApiResponse response = ApiClient.post(
-            "/categories/" + categoryId + "/todos",
-            JsonBodies.idReference(todoId)
-        );
-
-        assertTrue(
-            response.status() == 200 || response.status() == 201,
-            "Could not assign todo to category. Status: " + response.status()
-        );
+    public void todoIsAssignedToCategory(String todo, String category) {
+        String path = "/categories/" + context.idOf("categories", category) + "/todos";
+        ApiResponse response = ApiClient.post(path, JsonBodies.idReference(context.idOf("todos", todo)));
+        assertEquals(HttpStatus.CREATED, response.status(), "could not add \"" + todo + "\" to \"" + category + "\"");
     }
 
     @When("I list todos for category {string}")
-    public void listCategoryTodos(String category) {
-
-        String categoryId = context.idOf("categories", category);
-
-        context.setLastResponse(
-            ApiClient.get("/categories/" + categoryId + "/todos")
-        );
+    public void iListTodosForCategory(String category) {
+        iListTodosForCategoryWithId(context.idOf("categories", category));
     }
 
     @When("I list todos for category with id {string}")
-    public void listTodosForMissingCategory(String id) {
-
-        context.setLastResponse(
-            ApiClient.get("/categories/" + id + "/todos")
-        );
+    public void iListTodosForCategoryWithId(String id) {
+        context.setLastResponse(ApiClient.get("/categories/" + id + "/todos"));
     }
 
     @Then("category {string} contains todo {string}")
     public void categoryContainsTodo(String category, String todo) {
-
-        String todoId = context.idOf("todos", todo);
-
-        long count = context.lastResponse().json()
-            .findValues("id")
-            .stream()
-            .filter(node -> node.asText().equals(todoId))
-            .count();
-
-        assertEquals(1, count);
+        assertEquals(1, Collections.frequency(listedTodoIds(), context.idOf("todos", todo)),
+                "\"" + todo + "\" is not listed once in \"" + category + "\"");
     }
 
     @Then("category {string} has no todos")
     public void categoryHasNoTodos(String category) {
-
-        assertEquals(
-            0,
-            context.lastResponse().json().path("todos").size()
-        );
+        assertTrue(listedTodoIds().isEmpty(), "\"" + category + "\" lists the todos " + listedTodoIds());
     }
 
     @Then("the response contains the todo {string} of another category")
-    public void responseContainsTodoOfAnotherCategory(String todo) {
-
-        assertTrue(
-            context.lastResponse().idsIn("todos").contains(context.idOf("todos", todo))
-        );
+    public void theResponseContainsTheTodoOfAnotherCategory(String todo) {
+        assertTrue(listedTodoIds().contains(context.idOf("todos", todo)), "\"" + todo + "\" is not in the list");
     }
 
+    // Delete a category
 
-    // <-------------------- Delete a category -------------------->
     @When("I delete category {string}")
-    public void deleteCategory(String category) {
-
-        String id = context.idOf("categories", category);
-
-        context.setLastResponse(
-            ApiClient.delete("/categories/" + id)
-        );
+    public void iDeleteCategory(String category) {
+        context.setLastResponse(ApiClient.delete("/categories/" + context.idOf("categories", category)));
     }
 
     @When("I delete category {string} twice")
-    public void deleteCategoryTwice(String category) {
-
-        String id = context.idOf("categories", category);
-
-        ApiClient.delete("/categories/" + id);
-
-        context.setLastResponse(
-            ApiClient.delete("/categories/" + id)
-        );
+    public void iDeleteCategoryTwice(String category) {
+        iDeleteCategory(category);
+        iDeleteCategory(category);
     }
 
-
-    // <---------------------------- Helpers -------------------------------->
-    private void rememberCreatedCategory(ApiResponse response, String title) {
-
+    private void createCategory(String title, String body) {
+        ApiResponse response = ApiClient.post("/categories", body);
+        context.setLastResponse(response);
         if (response.status() == HttpStatus.CREATED) {
-            String id = response.json().findPath("id").asText();
-
-            assertFalse(id.isEmpty(), "Category ID was not returned");
-
-            context.remember("categories", title, id);
+            context.remember("categories", title, response.json().path("id").asText());
         }
     }
 
-    private ApiResponse updateCategory(
-        String method, String id, String title) {
-
-        String path = "/categories/" + id;
-        String body = JsonBodies.object("title", title);
-
-        if (method.equalsIgnoreCase("POST")) {
-            return ApiClient.post(path, body);
-        }
-
-        if (method.equalsIgnoreCase("PUT")) {
-            return ApiClient.put(path, body);
-        }
-
-        throw new IllegalArgumentException("Unsupported method: " + method);
+    /** The feature files name the invalid titles, since an empty or blank value cannot be read in a table. */
+    private static String titleFor(String invalidTitle) {
+        return switch (invalidTitle) {
+            case "EMPTY" -> "";
+            case "WHITESPACE" -> "   ";
+            default -> throw new IllegalArgumentException("Unknown invalid title: " + invalidTitle);
+        };
     }
 
     private boolean categoryWithTitleExists(String title) {
         ApiResponse response = ApiClient.get("/categories");
+        assertEquals(HttpStatus.OK, response.status(), "could not read the categories");
+        for (JsonNode category : response.json().path("categories")) {
+            if (category.path("title").asText().equals(title)) {
+                return true;
+            }
+        }
+        return false;
+    }
 
-        assertEquals(HttpStatus.OK, response.status());
-
-        JsonNode json = response.json();
-
-        return json.findValues("title").stream()
-            .anyMatch(node -> node.asText().equals(title));
+    private List<String> listedTodoIds() {
+        return context.lastResponse().idsIn("todos");
     }
 }
