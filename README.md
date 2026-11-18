@@ -14,6 +14,8 @@ Testing the Thingifier REST API todo list manager (v1.5.5).
     - `projects/` — Project endpoint tests.
     - `categories/` — Category endpoint tests.
     - `runner/` — `RandomizedTestRunner`, which runs the whole suite in random order.
+    - `stepdefinitions/` — Java implementations of Given/When/Then steps.
+- `src/test/resources/features/`  — Gherkin feature files.
 - `pom.xml` — Maven build file; declares every dependency.
 
 ## Requirements
@@ -24,6 +26,8 @@ Testing the Thingifier REST API todo list manager (v1.5.5).
     - JUnit Jupiter 5.13.1
     - JUnit Platform Launcher 1.13.1 (used by `RandomizedTestRunner`)
     - Jackson Databind 2.18.2 (JSON parsing in assertions)
+    - Cucumber Java 
+    - Cucumber JUnit Platform Engine
 
 ## Running the application
 
@@ -58,6 +62,12 @@ Single test classes can also be run from the IDE's test view, or the whole suite
 (default order).
 
 ## Running the Story Tests in Random Order
+
+Run all JUnit and Cucumber tests with:
+
+```powershell
+mvn test
+```
 
 Run the `main` method of `src/test/java/runner/RandomizedStoryRunner.java`, or:
 ```

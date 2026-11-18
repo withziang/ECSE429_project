@@ -31,11 +31,14 @@ Feature: List todos belonging to a category
       | Hobbies  |
 
   Scenario Outline: List todos for a category that does not exist (error flow)
-    When I list todos for category with id "<id>"
+    Given a category titled "<existingCategory>" exists
+    And a todo titled "<todo>" exists
+    And todo "<todo>" is assigned to category "<existingCategory>"
+    When I list todos for category with id "<missingId>"
     Then the response status is 200
     And the response contains no todos
 
-    Examples:
-      | id  |
-      | 100 |
-      | 101 |
+  Examples:
+    | existingCategory | todo              | missingId |
+    | University       | Finish assignment | 100       |
+    | Personal         | Buy groceries     | 101       |
