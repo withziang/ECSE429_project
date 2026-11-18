@@ -260,12 +260,11 @@ public class CategorySteps {
         );
     }
 
-    @Then("the response contains no todos")
-    public void responseContainsNoTodos() {
+    @Then("the response contains the todo {string} of another category")
+    public void responseContainsTodoOfAnotherCategory(String todo) {
 
-        assertEquals(
-            0,
-            context.lastResponse().json().path("todos").size()
+        assertTrue(
+            context.lastResponse().idsIn("todos").contains(context.idOf("todos", todo))
         );
     }
 

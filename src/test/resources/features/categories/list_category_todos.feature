@@ -35,10 +35,11 @@ Feature: List todos belonging to a category
     And a todo titled "<todo>" exists
     And todo "<todo>" is assigned to category "<existingCategory>"
     When I list todos for category with id "<missingId>"
+    # Bug CAT-002: the API should return 404, but it returns 200 with another category's todos
     Then the response status is 200
-    And the response contains no todos
+    And the response contains the todo "<todo>" of another category
 
-  Examples:
-    | existingCategory | todo              | missingId |
-    | University       | Finish assignment | 100       |
-    | Personal         | Buy groceries     | 101       |
+    Examples:
+      | existingCategory | todo              | missingId |
+      | University       | Finish assignment | 100       |
+      | Personal         | Buy groceries     | 101       |
