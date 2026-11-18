@@ -57,6 +57,14 @@ To repeat an earlier order, pass its seed as the first program argument (for exa
 Single test classes can also be run from the IDE's test view, or the whole suite with `mvn test`
 (default order).
 
+## Running the Story Tests in Random Order
+
+Run the `main` method of `src/test/java/runner/RandomizedStoryRunner.java`, or:
+```
+mvn test-compile exec:java -Dexec.mainClass=runner.RandomizedStoryRunner -Dexec.classpathScope=test
+```
+Features, scenarios and example rows are shuffled with a printed seed. Add `-Dexec.args=<seed>` to repeat an order.
+
 ## Test Organization
 
 The suite is organized by API resource, one test class per endpoint group, with shared code in `common/`.

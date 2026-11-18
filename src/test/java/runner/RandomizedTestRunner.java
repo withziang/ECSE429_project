@@ -12,6 +12,9 @@ import org.junit.platform.launcher.listeners.SummaryGeneratingListener;
 import org.junit.platform.launcher.listeners.TestExecutionSummary;
 
 import java.io.PrintWriter;
+import java.util.ArrayDeque;
+import java.util.Deque;
+import java.util.Optional;
 import java.util.Random;
 
 import static org.junit.platform.engine.discovery.DiscoverySelectors.selectPackage;
@@ -25,21 +28,8 @@ public class RandomizedTestRunner {
     private static final int MAX_STACK_TRACE_LINES = 10;
 
     public static void main(String[] args) {
-        long seed = args.length > 0 ? Long.parseLong(args[0]) : new Random().nextLong();
-
-        System.out.println("Randomized JUnit 5 Test Suite");
-        System.out.println("Random-order seed: " + seed);
-        System.out.println("Starting tests...\n");
-
-        SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
-        Launcher launcher = LauncherFactory.create();
-        launcher.execute(requestWithRandomOrder(seed), summaryListener, new ExecutionOrderPrinter());
-
-        printSummary(summaryListener.getSummary(), seed);
-    }
-
-    private static LauncherDiscoveryRequest requestWithRandomOrder(long seed) {
-        return LauncherDiscoveryRequestBuilder.request()
+        long seed = seedFrom(args);
+        run("Randomized JUnit 5 Test Suite", seed, LauncherDiscoveryRequestBuilder.request()
                 .selectors(
                         selectPackage("todos"),
                         selectPackage("projects"),
@@ -50,7 +40,23 @@ public class RandomizedTestRunner {
                         "org.junit.jupiter.api.MethodOrderer$Random")
                 .configurationParameter("junit.jupiter.testclass.order.default",
                         "org.junit.jupiter.api.ClassOrderer$Random")
-                .build();
+                .build());
+    }
+
+    static long seedFrom(String[] args) {
+        return args.length > 0 ? Long.parseLong(args[0]) : new Random().nextLong();
+    }
+
+    static void run(String title, long seed, LauncherDiscoveryRequest request) {
+        System.out.println(title);
+        System.out.println("Random-order seed: " + seed);
+        System.out.println("Starting tests...\n");
+
+        SummaryGeneratingListener summaryListener = new SummaryGeneratingListener();
+        Launcher launcher = LauncherFactory.create();
+        launcher.execute(request, summaryListener, new ExecutionOrderPrinter());
+
+        printSummary(summaryListener.getSummary(), seed);
     }
 
     private static void printSummary(TestExecutionSummary summary, long seed) {
@@ -76,10 +82,18 @@ public class RandomizedTestRunner {
         public void executionFinished(TestIdentifier identifier, TestExecutionResult result) {
             if (identifier.isTest()) {
                 position++;
-                String testClass = testPlan.getParent(identifier).map(TestIdentifier::getDisplayName).orElse("");
-                System.out.printf("%3d. [%s] %s > %s%n",
-                        position, result.getStatus(), testClass, identifier.getDisplayName());
+                System.out.printf("%3d. [%s] %s%n", position, result.getStatus(), path(identifier));
             }
+        }
+
+        private String path(TestIdentifier identifier) {
+            Deque<String> names = new ArrayDeque<>();
+            Optional<TestIdentifier> current = Optional.of(identifier);
+            while (current.isPresent() && current.get().getParentId().isPresent()) {
+                names.push(current.get().getDisplayName());
+                current = testPlan.getParent(current.get());
+            }
+            return String.join(" > ", names);
         }
     }
 }
